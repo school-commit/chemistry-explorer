@@ -18,23 +18,18 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Set up Java JDK 17 (Required for Android Gradle)
+      - name: Set up Java JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Capacitor Dependencies
+      - name: Install Dependencies
         run: npm install
 
       - name: Add and Sync Android Platform
         run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
+          npx cap add android || true
           npx cap sync android
 
       - name: Build Debug APK with Gradle
