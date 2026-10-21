@@ -1,0 +1,6 @@
+{
+  "appId": "com.adityamaurya.chemexplorer",
+  "appName": "Chemistry Explorer",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
