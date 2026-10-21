@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CHEMISTRY EXPLORER - JEE Class 11</title>
+
+  <!-- Google Fonts: Teko (Hindi/Headers) & Plus Jakarta Sans (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- KaTeX for Instant Chemistry Formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #070B14;
+      --bg-card: #111827;
+      --bg-glass: rgba(17, 24, 39, 0.82);
+      --accent-cyan: #06B6D4;
+      --accent-emerald: #10B981;
+      --accent-amber: #F59E0B;
+      --accent-violet: #8B5CF6;
+      --accent-rose: #F43F5E;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --font-ui: 'Plus Jakarta Sans', sans-serif;
+      --font-hindi: 'Teko', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-ui);
+      overflow-x: hidden;
+      min-height: 100vh;
+      padding-bottom: 85px;
+    }
+
+    .hindi-text {
+      font-family: var(--font-hindi);
+      font-size: 1.55rem;
+      line-height: 1.25;
+      letter-spacing: 0.4px;
+    }
+
+    .hindi-bold {
+      font-family: var(--font-hindi);
+      font-weight: 700;
+      letter-spacing: 0.6px;
+    }
+
+    /* ================= SPLASH SCREEN ================= */
+    #splash-screen {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #111b33 0%, #050811 100%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.6s ease, visibility 0.6s;
+    }
+
+    .atom-loader {
+      width: 120px;
+      height: 120px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .atom-nucleus {
+      width: 22px;
+      height: 22px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 25px var(--accent-cyan), 0 0 50px var(--accent-violet);
+    }
+
+    .atom-orbit {
+      position: absolute;
+      width: 100%;
+      height: 38%;
+      border: 2px solid rgba(6, 182, 212, 0.55);
+      border-radius: 50%;
+      animation: spinOrbit 2.4s linear infinite;
+    }
+    .atom-orbit:nth-child(2) { transform: rotate(60deg); border-color: rgba(139, 92, 246, 0.55); animation-duration: 2.8s; }
+    .atom-orbit:nth-child(3) { transform: rotate(120deg); border-color: rgba(16, 185, 129, 0.55); animation-duration: 3.2s; }
+
+    @keyframes spinOrbit {
+      0% { transform: rotate(var(--rot, 0deg)) rotateY(0deg); }
+      100% { transform: rotate(var(--rot, 0deg)) rotateY(360deg); }
+    }
+
+    .splash-title {
+      font-family: var(--font-hindi);
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #06B6D4, #10B981, #8B5CF6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    .splash-sub {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .splash-footer {
+      position: absolute;
+      bottom: 32px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #E2E8F0;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* ================= LOGIN MODAL ================= */
+    #login-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 17, 0.94);
+      backdrop-filter: blur(12px);
+      z-index: 8000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 24px;
+      padding: 28px 22px;
+      width: 100%;
+      max-width: 390px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      text-align: center;
+    }
+
+    .input-box {
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #0B1120;
+      color: #fff;
+      font-size: 1rem;
+      margin: 16px 0;
+      outline: none;
+    }
+    .input-box:focus { border-color: var(--accent-cyan); }
+
+    .gender-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .gender-btn {
+      padding: 14px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.1);
+      background: #0B1120;
+      color: var(--text-main);
+      cursor: pointer;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .gender-btn.active {
+      border-color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.15);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.25);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      color: #fff;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.35);
+    }
+
+    /* ================= HEADER & STREAK WIDGET ================= */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      background: rgba(11, 17, 32, 0.85);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #06B6D4, #3B82F6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .stat-badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .stat-streak { color: #F59E0B; border-color: rgba(245, 158, 11, 0.35); }
+    .stat-xp { color: #06B6D4; border-color: rgba(6, 182, 212, 0.35); }
+
+    /* ================= MAIN VIEWS ================= */
+    .view-section {
+      display: none;
+      padding: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      animation: fadeIn 0.25s ease;
+    }
+    .view-section.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Aesthetic Streak Widget */
+    .streak-widget {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.16) 0%, rgba(139, 92, 246, 0.16) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 99px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #F59E0B, #10B981);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    /* ================= FLASHCARD SWIPER (NotebookLM Style) ================= */
+    .chapter-select {
+      width: 100%;
+      padding: 12px 14px;
+      background: var(--bg-card);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+    }
+
+    .flashcard-stage {
+      perspective: 1200px;
+      width: 100%;
+      max-width: 420px;
+      height: 410px;
+      margin: 10px auto 18px;
+      position: relative;
+    }
+
+    .flashcard-box {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(160deg, #162038 0%, #0D1324 100%);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 26px;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.55);
+      transition: transform 0.28s ease, border-color 0.25s;
+      touch-action: pan-y;
+      position: relative;
+    }
+
+    .card-tag {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-cyan);
+      font-weight: 800;
+      background: rgba(6, 182, 212, 0.12);
+      padding: 5px 12px;
+      border-radius: 99px;
+      align-self: flex-start;
+    }
+
+    .card-question {
+      font-size: 1.2rem;
+      font-weight: 700;
+      line-height: 1.4;
+      margin: 12px 0;
+    }
+
+    .card-answer-drawer {
+      display: none;
+      background: rgba(6, 182, 212, 0.09);
+      border-left: 3px solid var(--accent-emerald);
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-top: 8px;
+      overflow-y: auto;
+      max-height: 185px;
+    }
+
+    .view-ans-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px dashed rgba(6, 182, 212, 0.5);
+      background: rgba(6, 182, 212, 0.1);
+      color: var(--accent-cyan);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .swipe-controls {
+      display: flex;
+      gap: 14px;
+      max-width: 420px;
+      margin: 0 auto;
+    }
+
+    .swipe-btn {
+      flex: 1;
+      padding: 13px;
+      border-radius: 14px;
+      border: none;
+      font-weight: 800;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .swipe-left { background: rgba(244, 63, 94, 0.18); color: #FB7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .swipe-right { background: rgba(16, 185, 129, 0.18); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    /* ================= PERIODIC TABLE 5-LEVEL GAME ================= */
+    .level-pills {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+
+    .lvl-btn {
+      padding: 9px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .lvl-btn.active {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-violet));
+      border-color: transparent;
+    }
+    .lvl-btn.locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .pt-scroll-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      background: #0A0F1D;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
+    .pt-grid {
+      display: grid;
+      grid-template-columns: repeat(18, 44px);
+      grid-auto-rows: 48px;
+      gap: 4px;
+      min-width: 850px;
+    }
+
+    .pt-slot {
+      border-radius: 10px;
+      border: 1px dashed rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.02);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.28);
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .pt-slot.target-slot {
+      border: 1.5px dashed rgba(6, 182, 212, 0.55);
+      background: rgba(6, 182, 212, 0.06);
+      color: rgba(255,255,255,0.55);
+    }
+
+    .pt-slot.dimmed-slot {
+      opacity: 0.2;
+      border-style: solid;
+    }
+
+    .pt-slot.filled-slot {
+      border-style: solid;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+      animation: popIn 0.25s ease;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); }
+      70% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* Curved Square Element Tile */
+    .elem-tile {
+      width: 66px;
+      height: 70px;
+      border-radius: 15px;
+      padding: 5px 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: grab;
+      position: relative;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+      transition: transform 0.15s, box-shadow 0.15s;
+      flex-shrink: 0;
+    }
+
+    .elem-tile.selected-tile {
+      transform: translateY(-5px) scale(1.06);
+      box-shadow: 0 0 18px #fff;
+      outline: 2px solid #fff;
+    }
+
+    .block-s { background: linear-gradient(145deg, #0284C7, #0369A1); border: 1px solid #38BDF8; }
+    .block-p { background: linear-gradient(145deg, #059669, #047857); border: 1px solid #34D399; }
+    .block-d { background: linear-gradient(145deg, #D97706, #B45309); border: 1px solid #FBBF24; }
+    .block-f { background: linear-gradient(145deg, #7C3AED, #6D28D9); border: 1px solid #A78BFA; }
+
+    .tile-z { font-size: 0.65rem; font-weight: 800; opacity: 0.9; text-align: left; }
+    .tile-sym { font-size: 1.25rem; font-weight: 800; text-align: center; line-height: 1; }
+    .tile-mass { font-size: 0.58rem; opacity: 0.85; text-align: center; font-weight: 600; }
+
+    .tray-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .tile-tray {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 12px;
+      background: var(--bg-card);
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.1);
+      min-height: 96px;
+      align-items: center;
+    }
+
+    /* ================= BOTTOM NAVIGATION ================= */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(11, 17, 32, 0.95);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 4px 12px;
+      z-index: 500;
+    }
+
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .nav-item.active { color: var(--accent-cyan); }
+    .nav-icon { font-size: 1.25rem; }
+  </style>
+</head>
+<body>
+
+  <!-- 1. SPLASH SCREEN -->
+  <div id="splash-screen">
+    <div class="atom-loader">
+      <div class="atom-orbit" style="--rot: 0deg;"></div>
+      <div class="atom-orbit" style="--rot: 60deg;"></div>
+      <div class="atom-orbit" style="--rot: 120deg;"></div>
+      <div class="atom-nucleus"></div>
+    </div>
+    <div class="splash-title">CHEMISTRY EXPLORER</div>
+    <div class="splash-sub">Class 11 NCERT • JEE Interactive Suite</div>
+    <div class="splash-footer">Made with ❤️‍🩹 by Aditya Maurya</div>
+  </div>
+
+  <!-- 2. LOGIN MODAL (Name & Gender Only) -->
+  <div id="login-modal">
+    <div class="login-card">
+      <h2 class="hindi-bold" style="font-size: 2.2rem; color: var(--accent-cyan);">WELCOME JEE ASPIRANT!</h2>
+      <p style="color: var(--text-muted); font-size: 0.88rem;">Enter your details to save your Streak & Game Progress</p>
+      <input type="text" id="user-name-input" class="input-box" placeholder="Enter your Name (e.g. Aditya)" maxlength="24" />
+      <div class="gender-grid">
+        <button type="button" class="gender-btn active" id="gen-male" onclick="selectGender('male')">👨‍🔬 Male</button>
+        <button type="button" class="gender-btn" id="gen-female" onclick="selectGender('female')">👩‍🔬 Female</button>
+      </div>
+      <button class="btn-primary" onclick="completeLogin()">🚀 Start Exploring</button>
+    </div>
+  </div>
+
+  <!-- 3. TOP HEADER BAR -->
+  <header class="top-bar">
+    <div class="user-pill">
+      <div class="avatar-circle" id="header-avatar">👨‍🔬</div>
+      <div>
+        <div style="font-weight: 800; font-size: 0.95rem;" id="header-name">Aspirant</div>
+        <div style="font-size: 0.72rem; color: var(--accent-emerald);">Class 11 • JEE Target</div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-badge stat-streak">🔥 <span id="streak-count">0</span>d</div>
+      <div class="stat-badge stat-xp">⚡ <span id="xp-count">0</span> XP</div>
+    </div>
+  </header>
+
+  <!-- 4. HOME DASHBOARD VIEW -->
+  <section id="view-home" class="view-section active">
+    <div class="streak-widget">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="font-size:0.75rem; font-weight:800; color:#FBBF24; text-transform:uppercase;">Daily Streak Mission</span>
+          <h3 class="hindi-bold" style="font-size:1.85rem; margin-top:2px;">आज के 10 NCERT Flashcards पूरे करें!</h3>
+        </div>
+        <div style="font-size:2.2rem;">🔥</div>
+      </div>
+      <p style="font-size:0.83rem; color:#CBD5E1; margin-top:4px;">
+        Daily Progress: <strong id="daily-cards-done">0</strong> / 10 Cards Completed
+      </p>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="daily-progress-fill"></div>
+      </div>
+    </div>
+
+    <h3 class="hindi-bold" style="font-size:1.7rem; margin-bottom:10px; color:var(--accent-cyan);">
+      Quick Launch Modules (क्लास 11 केमिस्ट्री)
+    </h3>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div onclick="switchTab('flashcards')" style="background:var(--bg-card); padding:16px; border-radius:18px; border:1px solid rgba(6,182,212,0.3); cursor:pointer;">
+        <div style="font-size:1.8rem;">🃏</div>
+        <div style="font-weight:800; margin-top:6px;">NCERT Flashcards</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">NotebookLM Swipe Deck + KaTeX</div>
+      </div>
+
+      <div onclick="switchTab('games')" style="background:var(--bg-card); padding:16px; border-radius:18px; border:1px solid rgba(16,185,129,0.3); cursor:pointer;">
+        <div style="font-size:1.8rem;">🎮</div>
+        <div style="font-weight:800; margin-top:6px;">5-Level Periodic Game</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">s, p, d, f & 118 Boss Level</div>
+      </div>
+
+      <div onclick="switchTab('lab')" style="background:var(--bg-card); padding:16px; border-radius:18px; border:1px solid rgba(245,158,11,0.3); cursor:pointer;">
+        <div style="font-size:1.8rem;">📈</div>
+        <div style="font-weight:800; margin-top:6px;">Interactive Lab</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Live Gas Graph & Calculators</div>
+      </div>
+
+      <div onclick="switchTab('library')" style="background:var(--bg-card); padding:16px; border-radius:18px; border:1px solid rgba(139,92,246,0.3); cursor:pointer;">
+        <div style="font-size:1.8rem;">📚</div>
+        <div style="font-weight:800; margin-top:6px;">Scientists & JEE Vault</div>
+        <div style="font-size:0.75rem; color:var(--text-muted);">NCERT Scientists & Exceptions</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. FLASHCARDS VIEW (NotebookLM Style) -->
+  <section id="view-flashcards" class="view-section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h2 class="hindi-bold" style="font-size:1.9rem;">NCERT CONCEPT FLASHCARDS</h2>
+      <span id="deck-counter" style="font-size:0.85rem; font-weight:800; color:var(--accent-cyan);">Card 1/10</span>
+    </div>
+
+    <select id="chapter-selector" class="chapter-select" onchange="loadFlashcardDeck()">
+      <option value="ch1">Ch 1: Some Basic Concepts of Chemistry (मोल संकल्पना)</option>
+      <option value="ch2">Ch 2: Structure of Atom (परमाणु की संरचना)</option>
+      <option value="ch3">Ch 3: Classification of Elements & Periodicity (आवर्त सारणी)</option>
+      <option value="ch4">Ch 4: Chemical Bonding & Molecular Structure (रासायनिक आबंधन)</option>
+      <option value="ch5">Ch 5: Chemical Thermodynamics (ऊष्मागतिकी)</option>
+    </select>
+
+    <div class="flashcard-stage">
+      <div class="flashcard-box" id="active-flashcard">
+        <div>
+          <span class="card-tag" id="fc-topic">NCERT CORE</span>
+          <div class="card-question" id="fc-question">Loading question...</div>
+          <div class="card-answer-drawer" id="fc-answer-box">
+            <div class="hindi-text" id="fc-hindi-ans"></div>
+            <div style="margin-top:8px; font-size:0.9rem; color:#38BDF8; font-weight:700;" id="fc-formula"></div>
+          </div>
+        </div>
+
+        <button class="view-ans-btn" id="fc-reveal-btn" onclick="revealFlashcardAnswer()">
+          👁️ View Answer (उत्तर और सूत्र देखें)
+        </button>
+      </div>
+    </div>
+
+    <div class="swipe-controls">
+      <button class="swipe-btn swipe-left" onclick="handleCardSwipe(false)">⬅️ Missed (Need Revision)</button>
+      <button class="swipe-btn swipe-right" onclick="handleCardSwipe(true)">Got It! (+10 XP) ➡️</button>
+    </div>
+  </section>
+
+  <!-- 6. GAMES HUB & 5-LEVEL PERIODIC TABLE DRAG & DROP -->
+  <section id="view-games" class="view-section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div>
+        <h2 class="hindi-bold" style="font-size:1.95rem; color:var(--accent-emerald);">GAME #1: PERIODIC DRAG & DROP</h2>
+        <p style="font-size:0.78rem; color:var(--text-muted);">Drag curved element tile OR Tap tile then tap its correct slot!</p>
+      </div>
+      <div class="stat-badge" style="color:#34D399;">Placed: <span id="pt-placed-count">0/0</span></div>
+    </div>
+
+    <!-- 5 Level Selector -->
+    <div class="level-pills" id="pt-level-bar"></div>
+
+    <!-- Tray & Shuffle -->
+    <div class="tray-header">
+      <span style="font-size:0.82rem; font-weight:700; color:#CBD5E1;">Shuffled Elements Tray (टाइल चुनें या ड्रैग करें):</span>
+      <button onclick="shufflePeriodicTray()" style="padding:6px 12px; border-radius:10px; border:1px solid var(--accent-cyan); background:rgba(6,182,212,0.15); color:#fff; font-weight:700; font-size:0.78rem; cursor:pointer;">
+        🔀 Shuffle Tiles
+      </button>
+    </div>
+
+    <div class="tile-tray" id="pt-tile-tray"></div>
+
+    <!-- Modern Periodic Table 18-Column Grid -->
+    <div class="pt-scroll-wrapper" style="margin-top:12px;">
+      <div class="pt-grid" id="pt-grid-board"></div>
+    </div>
+  </section>
+
+  <!-- 7. INTERACTIVE LAB & GRAPH VISUALIZER (Phase 1 Preview) -->
+  <section id="view-lab" class="view-section">
+    <h2 class="hindi-bold" style="font-size:1.95rem; color:var(--accent-amber);">INTERACTIVE LAB & GRAPH VISUALIZER</h2>
+    <div style="background:var(--bg-card); padding:16px; border-radius:18px; border:1px solid rgba(255,255,255,0.1); margin-top:10px;">
+      <h4 style="color:var(--accent-cyan); margin-bottom:6px;">Boyle's Law Isotherm ($P \propto 1/V$ at Constant $T$)</h4>
+      <p class="hindi-text" style="color:#CBD5E1;">स्थिर तापमान (Constant Temperature) पर गैस का दाब उसके आयतन के व्युत्क्रमानुपाती होता है।</p>
+      <div style="margin:12px 0;">
+        <label style="font-size:0.82rem; font-weight:700;">Temperature ($T$): <span id="temp-val">300</span> K</label>
+        <input type="range" id="temp-slider" min="200" max="600" value="300" style="width:100%; margin-top:6px;" oninput="drawGasGraph()" />
+      </div>
+      <canvas id="gas-canvas" width="360" height="200" style="width:100%; background:#070B14; border-radius:12px; border:1px solid rgba(255,255,255,0.08);"></canvas>
+    </div>
+  </section>
+
+  <!-- 8. JEE LIBRARY & SCIENTISTS -->
+  <section id="view-library" class="view-section">
+    <h2 class="hindi-bold" style="font-size:1.95rem; color:var(--accent-violet);">CLASS 11 SCIENTISTS & FORMULA VAULT</h2>
+    <div style="display:grid; gap:12px; margin-top:10px;">
+      <div style="background:var(--bg-card); padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-weight:800; color:var(--accent-cyan);">Niels Bohr (1913) - Atomic Model</div>
+        <p class="hindi-text" style="color:#E2E8F0; margin-top:4px;">
+          इलेक्ट्रॉन केवल उन्हीं कक्षाओं (Stationary Orbits) में घूमते हैं जिनका कोणीय संवेग (Angular Momentum) $h/2\pi$ का पूर्ण गुणज होता है।
+        </p>
+        <div style="margin-top:6px; font-size:0.9rem; color:#34D399;">$$mvr = \frac{nh}{2\pi} \quad | \quad E_n = -13.6 \frac{Z^2}{n^2} \text{ eV}$$</div>
+      </div>
+
+      <div style="background:var(--bg-card); padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-weight:800; color:var(--accent-amber);">Henry Moseley (1913) - Modern Periodic Law</div>
+        <p class="hindi-text" style="color:#E2E8F0; margin-top:4px;">
+          तत्वों के भौतिक और रासायनिक गुण उनके परमाणु क्रमांक (Atomic Number $Z$) के आवर्ती फलन होते हैं: $\sqrt{\nu} = a(Z - b)$।
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('home', this)">
+      <span class="nav-icon">🏠</span><span>Home</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('flashcards', this)">
+      <span class="nav-icon">🃏</span><span>Flashcards</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('games', this)">
+      <span class="nav-icon">🎮</span><span>Games</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('lab', this)">
+      <span class="nav-icon">🧪</span><span>Lab & Graph</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('library', this)">
+      <span class="nav-icon">📚</span><span>Library</span>
+    </button>
+  </nav>
+
+  <script>
+    /* =========================================================================
+       1. SYNTH AUDIO ENGINE (Zero external MP3 needed - Instant Game Sounds)
+       ========================================================================= */
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(freq = 520, type = 'sine', duration = 0.12) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundSuccess() {
+      playTone(587.33, 'triangle', 0.1);
+      setTimeout(() => playTone(880, 'triangle', 0.18), 90);
+    }
+
+    function soundError() {
+      playTone(220, 'sawtooth', 0.18);
+    }
+
+    /* =========================================================================
+       2. PERSISTENT STATE STORAGE (Safe across GitHub APK Updates)
+       ========================================================================= */
+    const STORAGE_KEY = 'CHEM_EXPLORER_V1_STATE';
+    let appState = {
+      user: { name: '', gender: 'male', loggedIn: false },
+      xp: 0,
+      streak: 1,
+      lastStreakDate: '',
+      dailyCardsCount: 0,
+      periodicGame: {
+        unlockedLevel: 1,
+        currentLevel: 1,
+        placedByLevel: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+      }
+    };
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          appState = { ...appState, ...parsed };
+          appState.periodicGame = { ...appState.periodicGame, ...(parsed.periodicGame || {}) };
+        } catch (e) {}
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      updateHeaderUI();
+    }
+
+    function updateHeaderUI() {
+      document.getElementById('header-name').textContent = appState.user.name || 'Aspirant';
+      document.getElementById('header-avatar').textContent = appState.user.gender === 'female' ? '👩‍🔬' : '👨‍🔬';
+      document.getElementById('xp-count').textContent = appState.xp;
+      document.getElementById('streak-count').textContent = appState.streak;
+      const done = Math.min(10, appState.dailyCardsCount);
+      document.getElementById('daily-cards-done').textContent = done;
+      document.getElementById('daily-progress-fill').style.width = (done * 10) + '%';
+    }
+
+    /* =========================================================================
+       3. SPLASH & LOGIN HANDLERS
+       ========================================================================= */
+    let tempGender = 'male';
+    function selectGender(g) {
+      tempGender = g;
+      document.getElementById('gen-male').classList.toggle('active', g === 'male');
+      document.getElementById('gen-female').classList.toggle('active', g === 'female');
+      playTone(480, 'sine', 0.08);
+    }
+
+    function completeLogin() {
+      const nameInput = document.getElementById('user-name-input').value.trim();
+      if (!nameInput) {
+        soundError();
+        alert('कृपया अपना नाम लिखें (Please enter your name)');
+        return;
+      }
+      appState.user.name = nameInput;
+      appState.user.gender = tempGender;
+      appState.user.loggedIn = true;
+      appState.lastStreakDate = new Date().toDateString();
+      saveState();
+      soundSuccess();
+      document.getElementById('login-modal').style.display = 'none';
+    }
+
+    /* =========================================================================
+       4. FLASHCARD ENGINE (Hindi Teko + English Brackets + KaTeX)
+       ========================================================================= */
+    const FLASHCARD_DB = {
+      ch1: [
+        {
+          topic: "Molarity vs Molality",
+          q: "Why does Molality (m) NOT change with temperature while Molarity (M) changes?",
+          hindi: "मोललता (Molality) विलायक के द्रव्यमान (Mass of Solvent) पर निर्भर करती है, जबकि मोलरता (Molarity) विलयन के आयतन (Volume of Solution) पर निर्भर करती है जो तापमान (Temperature) के साथ बदलता है।",
+          formula: "$$M = \\frac{n}{V_{\\text{L}}} \\quad , \\quad m = \\frac{n}{W_{\\text{solvent (kg)}}}$$"
+        },
+        {
+          topic: "Law of Multiple Proportions",
+          q: "Who proposed the Law of Multiple Proportions and what does it state?",
+          hindi: "जॉन डाल्टन (John Dalton, 1803) के अनुसार जब दो तत्व मिलकर एक से अधिक यौगिक (Compounds) बनाते हैं, तो एक तत्व के निश्चित द्रव्यमान से जुड़ने वाले दूसरे तत्व के द्रव्यमान छोटे पूर्णांकों के अनुपात (Simple Whole Number Ratio) में होते हैं।",
+          formula: "$$\\text{CO (12:16)} \\;\\&\\; \\text{CO}_2\\text{ (12:32)} \\Rightarrow \\text{O ratio} = 1:2$$"
+        },
+        {
+          topic: "Limiting Reagent",
+          q: "How do you quickly find the Limiting Reagent (LR) in a balanced chemical reaction?",
+          hindi: "वह अभिकारक (Reactant) जिसका 'दिए गए मोल / रससमीकरणमितीय गुणांक' (Given Moles / Stoichiometric Coefficient) का अनुपात सबसे कम (Minimum) होता है, वही सीमांत अभिकर्मक (Limiting Reagent) कहलाता है।",
+          formula: "$$\\text{LR} = \\min\\left(\\frac{\\text{Given Moles }(n)}{\\text{Stoichiometric Coeff.}}\\right)$$"
+        }
+      ],
+      ch2: [
+        {
+          topic: "Heisenberg Uncertainty Principle",
+          q: "State Heisenberg's Uncertainty Principle for a microscopic moving particle.",
+          hindi: "हाइजेनबर्ग के अनिश्चितता सिद्धांत (Heisenberg's Uncertainty Principle) के अनुसार किसी इलेक्ट्रॉन की सटीक स्थिति (Position $\\Delta x$) और संवेग (Momentum $\\Delta p$) को एक साथ मापना असंभव है।",
+          formula: "$$\\Delta x \\cdot \\Delta p_x \\ge \\frac{h}{4\\pi}$$"
+        },
+        {
+          topic: "Radial & Angular Nodes",
+          q: "What are the formulas for Radial Nodes and Angular Nodes in an atomic orbital?",
+          hindi: "किसी कक्षक (Orbital) में जहाँ इलेक्ट्रॉन पाए जाने की प्रायिकता शून्य (Zero Probability Density) होती है उसे नोड कहते हैं। त्रिज्य नोड्स (Radial Nodes) = $n - l - 1$ और कोणीय नोड्स (Angular Nodes) = $l$ होते हैं।",
+          formula: "$$\\text{Total Nodes} = (n - 1)$$"
+        }
+      ],
+      ch3: [
+        {
+          topic: "First Ionization Enthalpy Exception",
+          q: "Why is the First Ionization Enthalpy of Boron (B) less than Beryllium (Be)?",
+          hindi: "बेरिलियम ($1s^2 2s^2$) में पूर्ण पूरित (Fully-filled) $2s$ कक्षक होता है और $2s$ की भेदन क्षमता (Penetration Power) $2p$ से अधिक होती है, इसलिए Be से इलेक्ट्रॉन निकालना B ($2p^1$) की तुलना में कठिन है।",
+          formula: "$$IE_1:\\; \\text{Li} < \\text{B} < \\text{Be} < \\text{C} < \\text{O} < \\text{N}$$"
+        },
+        {
+          topic: "Electron Gain Enthalpy Exception",
+          q: "Why does Chlorine (Cl) have a more negative Electron Gain Enthalpy than Fluorine (F)?",
+          hindi: "फ्लोरीन का आकार अत्यंत छोटा ($2p$ subshell) होने के कारण उसमें अंतर-इलेक्ट्रॉनिक प्रतिकर्षण (Inter-electronic Repulsion) बहुत अधिक होता है, इसलिए क्लोरीन ($3p$) में इलेक्ट्रॉन आसानी से जुड़ता है।",
+          formula: "$$|\\Delta_{eg}H|:\\; \\text{Cl} > \\text{F} > \\text{Br} > \\text{I}$$"
+        }
+      ],
+      ch4: [
+        {
+          topic: "Dipole Moment Exception",
+          q: "Why does NH3 have a higher Dipole Moment than NF3 despite Fluorine being more electronegative?",
+          hindi: "अमोनिया ($\\text{NH}_3$) में एकाकी युग्म (Lone Pair) का कक्षक द्विध्रुव और $\\text{N-H}$ बंध द्विध्रुव एक ही दिशा (Same Direction) में जुड़ते हैं, जबकि $\\text{NF}_3$ में वे विपरीत दिशा में होकर एक-दूसरे को काटते हैं।",
+          formula: "$$\\mu(\\text{NH}_3) = 1.47\\text{ D} > \\mu(\\text{NF}_3) = 0.24\\text{ D}$$"
+        }
+      ],
+      ch5: [
+        {
+          topic: "Gibbs Energy & Spontaneity",
+          q: "When is a reaction spontaneous at ALL temperatures?",
+          hindi: "जब अभिक्रिया ऊष्माक्षेपी (Exothermic, $\\Delta H < 0$) हो और एन्ट्रॉपी बढ़ रही हो ($\\Delta S > 0$), तब गिब्स मुक्त ऊर्जा ($\\Delta G$) हर तापमान पर ऋणात्मक (Negative) होती है।",
+          formula: "$$\\Delta G = \\Delta H - T\\Delta S < 0$$"
+        }
+      ]
+    };
+
+    let currentDeck = [];
+    let currentCardIndex = 0;
+
+    function loadFlashcardDeck() {
+      const ch = document.getElementById('chapter-selector').value;
+      currentDeck = FLASHCARD_DB[ch] || FLASHCARD_DB.ch1;
+      currentCardIndex = 0;
+      renderFlashcard();
+    }
+
+    function renderFlashcard() {
+      const card = currentDeck[currentCardIndex];
+      document.getElementById('deck-counter').textContent = `Card ${currentCardIndex + 1}/${currentDeck.length}`;
+      document.getElementById('fc-topic').textContent = card.topic;
+      document.getElementById('fc-question').textContent = card.q;
+      document.getElementById('fc-hindi-ans').innerHTML = card.hindi;
+      document.getElementById('fc-formula').innerHTML = card.formula;
+      document.getElementById('fc-answer-box').style.display = 'none';
+      document.getElementById('fc-reveal-btn').style.display = 'block';
+
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('active-flashcard'), {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ]
+        });
+      }
+    }
+
+    function revealFlashcardAnswer() {
+      playTone(640, 'sine', 0.1);
+      document.getElementById('fc-answer-box').style.display = 'block';
+      document.getElementById('fc-reveal-btn').style.display = 'none';
+    }
+
+    function handleCardSwipe(isCorrect) {
+      const box = document.getElementById('active-flashcard');
+      if (isCorrect) {
+        soundSuccess();
+        appState.xp += 10;
+        appState.dailyCardsCount += 1;
+        box.style.transform = 'translateX(45px) rotate(4deg)';
+        box.style.borderColor = '#10B981';
+      } else {
+        soundError();
+        box.style.transform = 'translateX(-45px) rotate(-4deg)';
+        box.style.borderColor = '#F43F5E';
+      }
+      saveState();
+
+      setTimeout(() => {
+        box.style.transform = 'none';
+        box.style.borderColor = 'rgba(6, 182, 212, 0.35)';
+        currentCardIndex = (currentCardIndex + 1) % currentDeck.length;
+        renderFlashcard();
+      }, 240);
+    }
+
+    /* =========================================================================
+       5. COMPLETE 118-ELEMENT 5-LEVEL PERIODIC TABLE DRAG & DROP GAME
+       ========================================================================= */
+    // Compact 118 Elements Dataset: [Z, Symbol, Mass, Row(1-10), Col(1-18), Block]
+    const RAW_ELEMENTS = [
+      [1,"H","1.008",1,1,"s"],[2,"He","4.002",1,18,"s"],
+      [3,"Li","6.94",2,1,"s"],[4,"Be","9.012",2,2,"s"],[5,"B","10.81",2,13,"p"],[6,"C","12.01",2,14,"p"],[7,"N","14.00",2,15,"p"],[8,"O","15.99",2,16,"p"],[9,"F","18.99",2,17,"p"],[10,"Ne","20.18",2,18,"p"],
+      [11,"Na","22.99",3,1,"s"],[12,"Mg","24.30",3,2,"s"],[13,"Al","26.98",3,13,"p"],[14,"Si","28.08",3,14,"p"],[15,"P","30.97",3,15,"p"],[16,"S","32.06",3,16,"p"],[17,"Cl","35.45",3,17,"p"],[18,"Ar","39.95",3,18,"p"],
+      [19,"K","39.10",4,1,"s"],[20,"Ca","40.08",4,2,"s"],[21,"Sc","44.96",4,3,"d"],[22,"Ti","47.87",4,4,"d"],[23,"V","50.94",4,5,"d"],[24,"Cr","51.99",4,6,"d"],[25,"Mn","54.94",4,7,"d"],[26,"Fe","55.85",4,8,"d"],[27,"Co","58.93",4,9,"d"],[28,"Ni","58.69",4,10,"d"],[29,"Cu","63.55",4,11,"d"],[30,"Zn","65.38",4,12,"d"],[31,"Ga","69.72",4,13,"p"],[32,"Ge","72.63",4,14,"p"],[33,"As","74.92",4,15,"p"],[34,"Se","78.97",4,16,"p"],[35,"Br","79.90",4,17,"p"],[36,"Kr","83.80",4,18,"p"],
+      [37,"Rb","85.47",5,1,"s"],[38,"Sr","87.62",5,2,"s"],[39,"Y","88.91",5,3,"d"],[40,"Zr","91.22",5,4,"d"],[41,"Nb","92.91",5,5,"d"],[42,"Mo","95.95",5,6,"d"],[43,"Tc","(98)",5,7,"d"],[44,"Ru","101.1",5,8,"d"],[45,"Rh","102.9",5,9,"d"],[46,"Pd","106.4",5,10,"d"],[47,"Ag","107.9",5,11,"d"],[48,"Cd","112.4",5,12,"d"],[49,"In","114.8",5,13,"p"],[50,"Sn","118.7",5,14,"p"],[51,"Sb","121.8",5,15,"p"],[52,"Te","127.6",5,16,"p"],[53,"I","126.9",5,17,"p"],[54,"Xe","131.3",5,18,"p"],
+      [55,"Cs","132.9",6,1,"s"],[56,"Ba","137.3",6,2,"s"],[57,"La","138.9",6,3,"d"],[72,"Hf","178.5",6,4,"d"],[73,"Ta","180.9",6,5,"d"],[74,"W","183.8",6,6,"d"],[75,"Re","186.2",6,7,"d"],[76,"Os","190.2",6,8,"d"],[77,"Ir","192.2",6,9,"d"],[78,"Pt","195.1",6,10,"d"],[79,"Au","197.0",6,11,"d"],[80,"Hg","200.6",6,12,"d"],[81,"Tl","204.4",6,13,"p"],[82,"Pb","207.2",6,14,"p"],[83,"Bi","208.9",6,15,"p"],[84,"Po","(209)",6,16,"p"],[85,"At","(210)",6,17,"p"],[86,"Rn","(222)",6,18,"p"],
+      [87,"Fr","(223)",7,1,"s"],[88,"Ra","(226)",7,2,"s"],[89,"Ac","(227)",7,3,"d"],[104,"Rf","(267)",7,4,"d"],[105,"Db","(268)",7,5,"d"],[106,"Sg","(269)",7,6,"d"],[107,"Bh","(270)",7,7,"d"],[108,"Hs","(277)",7,8,"d"],[109,"Mt","(278)",7,9,"d"],[110,"Ds","(281)",7,10,"d"],[111,"Rg","(282)",7,11,"d"],[112,"Cn","(285)",7,12,"d"],[113,"Nh","(286)",7,13,"p"],[114,"Fl","(289)",7,14,"p"],[115,"Mc","(290)",7,15,"p"],[116,"Lv","(293)",7,16,"p"],[117,"Ts","(294)",7,17,"p"],[118,"Og","(294)",7,18,"p"],
+      // Lanthanoids (Row 9, Col 4-17)
+      [58,"Ce","140.1",9,4,"f"],[59,"Pr","140.9",9,5,"f"],[60,"Nd","144.2",9,6,"f"],[61,"Pm","(145)",9,7,"f"],[62,"Sm","150.4",9,8,"f"],[63,"Eu","152.0",9,9,"f"],[64,"Gd","157.3",9,10,"f"],[65,"Tb","158.9",9,11,"f"],[66,"Dy","162.5",9,12,"f"],[67,"Ho","164.9",9,13,"f"],[68,"Er","167.3",9,14,"f"],[69,"Tm","168.9",9,15,"f"],[70,"Yb","173.0",9,16,"f"],[71,"Lu","175.0",9,17,"f"],
+      // Actinoids (Row 10, Col 4-17)
+      [90,"Th","232.0",10,4,"f"],[91,"Pa","231.0",10,5,"f"],[92,"U","238.0",10,6,"f"],[93,"Np","(237)",10,7,"f"],[94,"Pu","(244)",10,8,"f"],[95,"Am","(243)",10,9,"f"],[96,"Cm","(247)",10,10,"f"],[97,"Bk","(247)",10,11,"f"],[98,"Cf","(251)",10,12,"f"],[99,"Es","(252)",10,13,"f"],[100,"Fm","(257)",10,14,"f"],[101,"Md","(258)",10,15,"f"],[102,"No","(259)",10,16,"f"],[103,"Lr","(266)",10,17,"f"]
+    ];
+
+    const PT_LEVELS = [
+      { id: 1, name: "Lvl 1: s-Block", filter: e => e[5] === 's' },
+      { id: 2, name: "Lvl 2: p-Block", filter: e => e[5] === 'p' },
+      { id: 3, name: "Lvl 3: d-Block", filter: e => e[5] === 'd' },
+      { id: 4, name: "Lvl 4: f-Block", filter: e => e[5] === 'f' },
+      { id: 5, name: "Lvl 5: Full 118 Boss", filter: () => true }
+    ];
+
+    let selectedElementZ = null;
+    let currentTrayElements = [];
+
+    function initPeriodicGame() {
+      renderLevelBar();
+      loadPeriodicLevel(appState.periodicGame.currentLevel || 1);
+    }
+
+    function renderLevelBar() {
+      const bar = document.getElementById('pt-level-bar');
+      bar.innerHTML = '';
+      PT_LEVELS.forEach(lvl => {
+        const isUnlocked = lvl.id <= appState.periodicGame.unlockedLevel;
+        const btn = document.createElement('button');
+        btn.className = `lvl-btn ${appState.periodicGame.currentLevel === lvl.id ? 'active' : ''} ${!isUnlocked ? 'locked' : ''}`;
+        btn.textContent = isUnlocked ? `⭐ ${lvl.name}` : `🔒 ${lvl.name}`;
+        btn.onclick = () => {
+          if (!isUnlocked) {
+            soundError();
+            return;
+          }
+          loadPeriodicLevel(lvl.id);
+        };
+        bar.appendChild(btn);
+      });
+    }
+
+    function loadPeriodicLevel(lvlId) {
+      appState.periodicGame.currentLevel = lvlId;
+      selectedElementZ = null;
+      const lvlObj = PT_LEVELS.find(l => l.id === lvlId);
+      const placedArr = appState.periodicGame.placedByLevel[lvlId] || [];
+
+      const targetElements = RAW_ELEMENTS.filter(lvlObj.filter);
+      currentTrayElements = targetElements.filter(e => !placedArr.includes(e[0]));
+      shuffleArray(currentTrayElements);
+
+      saveState();
+      renderLevelBar();
+      renderPeriodicTray();
+      renderPeriodicBoard(lvlObj, placedArr, targetElements.length);
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function shufflePeriodicTray() {
+      playTone(600, 'triangle', 0.1);
+      shuffleArray(currentTrayElements);
+      renderPeriodicTray();
+    }
+
+    function renderPeriodicTray() {
+      const tray = document.getElementById('pt-tile-tray');
+      tray.innerHTML = '';
+      if (currentTrayElements.length === 0) {
+        tray.innerHTML = `<div style="color:#34D399; font-weight:800; margin:auto;">🎉 Level Cleared! Next Level Unlocked! <button onclick="resetCurrentLevel()" style="margin-left:10px; padding:6px 12px; border-radius:8px; background:#06B6D4; border:none; color:#fff; font-weight:700; cursor:pointer;">Replay Level</button></div>`;
+        return;
+      }
+
+      currentTrayElements.forEach(el => {
+        const [z, sym, mass, row, col, block] = el;
+        const tile = document.createElement('div');
+        tile.className = `elem-tile block-${block} ${selectedElementZ === z ? 'selected-tile' : ''}`;
+        tile.draggable = true;
+        tile.innerHTML = `
+          <div class="tile-z">${z}</div>
+          <div class="tile-sym">${sym}</div>
+          <div class="tile-mass">${mass}</div>
+        `;
+
+        // Click / Tap to Select
+        tile.onclick = () => {
+          selectedElementZ = (selectedElementZ === z) ? null : z;
+          playTone(500, 'sine', 0.06);
+          renderPeriodicTray();
+        };
+
+        // HTML5 Drag start
+        tile.ondragstart = (ev) => {
+          selectedElementZ = z;
+          ev.dataTransfer.setData('text/plain', z);
+        };
+
+        tray.appendChild(tile);
+      });
+    }
+
+    function renderPeriodicBoard(lvlObj, placedArr, totalTargetCount) {
+      const board = document.getElementById('pt-grid-board');
+      board.innerHTML = '';
+      document.getElementById('pt-placed-count').textContent = `${placedArr.length}/${totalTargetCount}`;
+
+      RAW_ELEMENTS.forEach(el => {
+        const [z, sym, mass, row, col, block] = el;
+        const isTargetInLevel = lvlObj.filter(el);
+        const isPlaced = placedArr.includes(z);
+
+        const slot = document.createElement('div');
+        slot.style.gridRow = row;
+        slot.style.gridColumn = col;
+
+        if (isPlaced) {
+          slot.className = `pt-slot filled-slot block-${block}`;
+          slot.innerHTML = `<span style="font-size:0.55rem; opacity:0.85;">${z}</span><strong style="font-size:0.85rem;">${sym}</strong>`;
+        } else if (isTargetInLevel) {
+          slot.className = `pt-slot target-slot`;
+          slot.innerHTML = `<span>${z}</span>`;
+
+          // Tap to Drop
+          slot.onclick = () => attemptPlaceElement(z);
+
+          // Drag over & Drop
+          slot.ondragover = (ev) => ev.preventDefault();
+          slot.ondrop = (ev) => {
+            ev.preventDefault();
+            const draggedZ = parseInt(ev.dataTransfer.getData('text/plain'), 10) || selectedElementZ;
+            selectedElementZ = draggedZ;
+            attemptPlaceElement(z);
+          };
+        } else {
+          slot.className = `pt-slot dimmed-slot`;
+          slot.innerHTML = `<span>${sym}</span>`;
+        }
+
+        board.appendChild(slot);
+      });
+    }
+
+    function attemptPlaceElement(targetSlotZ) {
+      if (!selectedElementZ) return;
+      const lvlId = appState.periodicGame.currentLevel;
+      const placedArr = appState.periodicGame.placedByLevel[lvlId] || [];
+
+      if (selectedElementZ === targetSlotZ) {
+        soundSuccess();
+        if (!placedArr.includes(targetSlotZ)) {
+          placedArr.push(targetSlotZ);
+          appState.periodicGame.placedByLevel[lvlId] = placedArr;
+        }
+        currentTrayElements = currentTrayElements.filter(e => e[0] !== targetSlotZ);
+        selectedElementZ = null;
+        appState.xp += 5;
+
+        // Check Level Completion
+        if (currentTrayElements.length === 0 && appState.periodicGame.unlockedLevel < 5 && lvlId === appState.periodicGame.unlockedLevel) {
+          appState.periodicGame.unlockedLevel += 1;
+          appState.xp += 50;
+        }
+
+        saveState();
+        const lvlObj = PT_LEVELS.find(l => l.id === lvlId);
+        const total = RAW_ELEMENTS.filter(lvlObj.filter).length;
+        renderLevelBar();
+        renderPeriodicTray();
+        renderPeriodicBoard(lvlObj, placedArr, total);
+      } else {
+        soundError();
+      }
+    }
+
+    function resetCurrentLevel() {
+      const lvlId = appState.periodicGame.currentLevel;
+      appState.periodicGame.placedByLevel[lvlId] = [];
+      saveState();
+      loadPeriodicLevel(lvlId);
+    }
+
+    /* =========================================================================
+       6. INTERACTIVE GAS LAW GRAPH (Boyle's Law Canvas)
+       ========================================================================= */
+    function drawGasGraph() {
+      const canvas = document.getElementById('gas-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const T = parseInt(document.getElementById('temp-slider').value, 10);
+      document.getElementById('temp-val').textContent = T;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Axes
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(35, 15);
+      ctx.lineTo(35, 175);
+      ctx.lineTo(340, 175);
+      ctx.stroke();
+
+      // Hyperbola Curve: P = k*T / V
+      ctx.strokeStyle = '#06B6D4';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (let x = 40; x <= 330; x += 4) {
+        const v = (x - 30) / 18;
+        const p = (T * 0.45) / v;
+        const y = 175 - Math.min(155, p);
+        if (x === 40) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '11px sans-serif';
+      ctx.fillText('Pressure (P)', 42, 28);
+      ctx.fillText('Volume (V) →', 265, 192);
+    }
+
+    /* =========================================================================
+       7. NAVIGATION & INITIALIZATION
+       ========================================================================= */
+    function switchTab(tabId, btnEl) {
+      playTone(540, 'sine', 0.06);
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('view-' + tabId).classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      if (tabId === 'lab') drawGasGraph();
+      if (window.renderMathInElement) {
+        renderMathInElement(document.getElementById('view-' + tabId));
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      updateHeaderUI();
+      loadFlashcardDeck();
+      initPeriodicGame();
+      drawGasGraph();
+
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        if (!appState.user.loggedIn) {
+          document.getElementById('login-modal').style.display = 'flex';
+        }
+      }, 2200);
+    });
+  </script>
+</body>
+</html>
