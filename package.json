@@ -1,0 +1,14 @@
+{
+  "name": "chemistry-explorer",
+  "version": "1.0.0",
+  "description": "Class 11 JEE Chemistry Explorer - Formula, Lab, Graphs, Flashcards & 15 Conceptual Games",
+  "main": "www/index.html",
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 0"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  }
+}
