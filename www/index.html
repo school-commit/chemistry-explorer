@@ -546,4 +546,948 @@
       <div onclick="switchTab('lab')" style="background:var(--bg-card); padding:15px; border-radius:16px; border:1px solid rgba(245,158,11,0.3); cursor:pointer;">
         <div style="font-size:1.7rem;">📈</div>
         <div style="font-weight:800; margin-top:4px;">Lab & Graph Engine</div>
-   
+        <div style="font-size:0.73rem; color:var(--text-muted);">3 Live Graphs + Molarity Calc</div>
+      </div>
+
+      <div onclick="switchTab('library')" style="background:var(--bg-card); padding:15px; border-radius:16px; border:1px solid rgba(139,92,246,0.3); cursor:pointer;">
+        <div style="font-size:1.7rem;">📚</div>
+        <div style="font-weight:800; margin-top:4px;">NCERT JEE Vault</div>
+        <div style="font-size:0.73rem; color:var(--text-muted);">Formulas & Scientists</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. FLASHCARDS VIEW (WITH HI/EN LANGUAGE BUTTON & REPEAT +5 XP) -->
+  <section id="view-flashcards" class="view-section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <h2 class="hindi-bold" style="font-size:1.85rem;">NCERT CONCEPT FLASHCARDS</h2>
+      <span id="deck-counter" style="font-size:0.82rem; font-weight:800; color:var(--accent-cyan);">Card 1/5</span>
+    </div>
+
+    <select id="chapter-selector" class="chapter-select" onchange="loadFlashcardDeck()">
+      <option value="ch1">Ch 1: Some Basic Concepts of Chemistry (मोल संकल्पना)</option>
+      <option value="ch2">Ch 2: Structure of Atom (परमाणु की संरचना)</option>
+      <option value="ch3">Ch 3: Classification of Elements (आवर्त सारणी)</option>
+      <option value="ch4">Ch 4: Chemical Bonding (रासायनिक आबंधन)</option>
+      <option value="ch5">Ch 5: Thermodynamics & Equilibrium (ऊष्मागतिकी एवं साम्य)</option>
+    </select>
+
+    <div class="flashcard-stage">
+      <div class="flashcard-box" id="active-flashcard">
+        <div>
+          <div class="card-top-row">
+            <span class="card-tag" id="fc-topic">NCERT CORE</span>
+            <button class="lang-toggle-btn" id="fc-lang-btn" onclick="toggleCardLanguage()">🌐 भाषा: हिंदी (Switch to EN)</button>
+          </div>
+
+          <div class="card-question" id="fc-question">Loading...</div>
+
+          <div class="card-answer-drawer" id="fc-answer-box">
+            <div id="fc-ans-text" class="hindi-text"></div>
+            <div style="margin-top:8px; font-size:0.9rem; color:#38BDF8; font-weight:700;" id="fc-formula"></div>
+          </div>
+        </div>
+
+        <button class="view-ans-btn" id="fc-reveal-btn" onclick="revealFlashcardAnswer()">
+          👁️ View Answer (उत्तर और सूत्र देखें)
+        </button>
+      </div>
+    </div>
+
+    <div class="swipe-controls">
+      <button class="swipe-btn swipe-left" onclick="handleCardSwipe(false)">⬅️ Missed (Revise)</button>
+      <button class="swipe-btn swipe-right" id="fc-right-btn" onclick="handleCardSwipe(true)">Got It! (+10 XP) ➡️</button>
+    </div>
+  </section>
+
+  <!-- 6. GAMES HUB (WITH CUSTOM TIMER 30s-5m & 50/100 XP) -->
+  <section id="view-games" class="view-section">
+    <!-- Game Switcher -->
+    <div class="game-selector-tabs">
+      <button class="g-tab active" id="gtab-pt" onclick="switchGameModule('pt')">🧩 1. Periodic Drag (5 Lvl)</button>
+      <button class="g-tab" id="gtab-aufbau" onclick="switchGameModule('aufbau')">⚡ 2. Aufbau Filler (5 Lvl)</button>
+      <button class="g-tab" id="gtab-quantum" onclick="switchGameModule('quantum')">🎯 3. Quantum Validator (5 Lvl)</button>
+    </div>
+
+    <!-- Universal Level Timer Bar (30s to 5 min) -->
+    <div class="timer-bar">
+      <div style="display:flex; align-items:center; gap:6px;">
+        <span style="font-size:0.76rem; font-weight:700; color:#CBD5E1;">⏱️ Set Timer:</span>
+        <select id="game-timer-select" class="timer-select" onchange="resetAndStartGameTimer()">
+          <option value="30">30 Sec</option>
+          <option value="60">1 Min</option>
+          <option value="120" selected>2 Min</option>
+          <option value="180">3 Min</option>
+          <option value="300">5 Min</option>
+        </select>
+      </div>
+      <div class="timer-clock" id="game-timer-display">02:00</div>
+      <div style="font-size:0.72rem; color:#34D399; font-weight:800;">Lvl 1-4: +50 XP | Lvl 5: +100 XP</div>
+    </div>
+
+    <!-- MODULE 1: PERIODIC TABLE DRAG & DROP -->
+    <div id="game-mod-pt">
+      <div class="level-pills" id="pt-level-bar"></div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:6px;">
+        <span style="font-size:0.78rem; font-weight:700; color:#CBD5E1;">
+          Placed: <strong id="pt-placed-count" style="color:#34D399;">0/0</strong>
+        </span>
+        <div style="display:flex; gap:6px;">
+          <button onclick="togglePtZoom()" id="pt-zoom-btn" style="padding:5px 10px; border-radius:8px; border:1px solid #8B5CF6; background:rgba(139,92,246,0.18); color:#fff; font-size:0.74rem; font-weight:700; cursor:pointer;">
+            🔍 Zoom: Fit Screen (He Visible)
+          </button>
+          <button onclick="shufflePeriodicTray()" style="padding:5px 10px; border-radius:8px; border:1px solid var(--accent-cyan); background:rgba(6,182,212,0.18); color:#fff; font-size:0.74rem; font-weight:700; cursor:pointer;">
+            🔀 Shuffle
+          </button>
+        </div>
+      </div>
+
+      <div class="tile-tray" id="pt-tile-tray"></div>
+
+      <div class="pt-scroll-wrapper">
+        <div class="pt-grid" id="pt-grid-board"></div>
+      </div>
+    </div>
+
+    <!-- MODULE 2: AUFBAU ORBITAL FILLER (5 LEVELS) -->
+    <div id="game-mod-aufbau" style="display:none;">
+      <div class="level-pills" id="aufbau-level-bar"></div>
+      <div style="background:var(--bg-card); padding:15px; border-radius:18px; border:1px solid rgba(255,255,255,0.1);">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="card-tag" id="auf-target-badge">Level 1</span>
+          <span style="font-size:0.8rem; color:#FBBF24; font-weight:700;">Tap box: Empty → ↑ → ↑↓</span>
+        </div>
+        <h3 style="font-size:1.25rem; margin-top:8px;" id="auf-prompt">Fill Orbitals for Carbon (Z = 6)</h3>
+        <p class="hindi-text" style="color:#94A3B8; margin-top:2px;" id="auf-hint"></p>
+
+        <div class="orbital-container" id="auf-boxes-area"></div>
+
+        <button class="btn-primary" onclick="verifyAufbauConfig()">✅ Check Orbital Configuration</button>
+      </div>
+    </div>
+
+    <!-- MODULE 3: QUANTUM NUMBER VALIDATOR (5 LEVELS) -->
+    <div id="game-mod-quantum" style="display:none;">
+      <div class="level-pills" id="qn-level-bar"></div>
+      <div style="background:var(--bg-card); padding:18px; border-radius:18px; border:1px solid rgba(255,255,255,0.1); text-align:center;">
+        <span class="card-tag" id="qn-lvl-tag">Quantum Set</span>
+        <div style="font-size:1.3rem; font-weight:800; margin:16px 0; color:#38BDF8;" id="qn-set-display"></div>
+        <p class="hindi-text" style="color:#CBD5E1; margin-bottom:16px;" id="qn-question-text">
+          क्या यह क्वांटम संख्याओं का सेट संभव (Valid) है या असंभव (Invalid)?
+        </p>
+        <div style="display:flex; gap:12px;">
+          <button class="swipe-btn swipe-right" onclick="answerQuantum(true)">✅ Valid (संभव है)</button>
+          <button class="swipe-btn swipe-left" onclick="answerQuantum(false)">❌ Invalid (असंभव है)</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. INTERACTIVE LAB & GRAPH VISUALIZER (NO RAW $ SIGNS) -->
+  <section id="view-lab" class="view-section">
+    <h2 class="hindi-bold" style="font-size:1.9rem; color:var(--accent-amber);">INTERACTIVE LAB & GRAPH VISUALIZER</h2>
+
+    <div style="background:var(--bg-card); padding:15px; border-radius:18px; border:1px solid rgba(255,255,255,0.1); margin-top:10px;">
+      <select id="graph-mode-select" class="chapter-select" onchange="drawLabGraph()">
+        <option value="boyle">1. Boyle's Law Isotherm (P vs V at Constant T)</option>
+        <option value="maxwell">2. Maxwell-Boltzmann Speed Distribution Curve</option>
+        <option value="radial">3. 2s Orbital Radial Probability (Node Visualizer)</option>
+      </select>
+
+      <p class="hindi-text" id="graph-desc-hindi" style="color:#CBD5E1;">
+        स्थिर तापमान (Constant Temperature) पर गैस का दाब उसके आयतन के व्युत्क्रमानुपाती होता है: $$P \propto \frac{1}{V}$$
+      </p>
+
+      <div style="margin:10px 0;">
+        <label style="font-size:0.82rem; font-weight:700;">Temperature (T): <span id="temp-val" style="color:var(--accent-cyan);">300</span> K</label>
+        <input type="range" id="temp-slider" min="200" max="600" value="300" style="width:100%; margin-top:5px;" oninput="drawLabGraph()" />
+      </div>
+
+      <canvas id="gas-canvas" width="360" height="195" style="width:100%; background:#070B14; border-radius:12px; border:1px solid rgba(255,255,255,0.08);"></canvas>
+    </div>
+
+    <!-- Interactive Molarity Calculator -->
+    <div style="background:var(--bg-card); padding:15px; border-radius:18px; border:1px solid rgba(6,182,212,0.3); margin-top:14px;">
+      <h3 class="hindi-bold" style="font-size:1.6rem; color:var(--accent-cyan);">⚡ Live Molarity & pH Calculator</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+        <div>
+          <label style="font-size:0.75rem; color:var(--text-muted);">Solute Moles (n):</label>
+          <input type="number" id="calc-moles" class="input-box" value="0.5" step="0.1" style="margin:4px 0; padding:9px;" oninput="runChemCalc()" />
+        </div>
+        <div>
+          <label style="font-size:0.75rem; color:var(--text-muted);">Volume in Litres (V):</label>
+          <input type="number" id="calc-vol" class="input-box" value="2.0" step="0.1" style="margin:4px 0; padding:9px;" oninput="runChemCalc()" />
+        </div>
+      </div>
+      <div id="calc-output" style="margin-top:8px; font-weight:800; color:#34D399; font-size:0.95rem;">
+        Molarity (M) = 0.25 mol/L | Strong Acid pH = 0.60
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. JEE LIBRARY -->
+  <section id="view-library" class="view-section">
+    <h2 class="hindi-bold" style="font-size:1.9rem; color:var(--accent-violet);">CLASS 11 SCIENTISTS & FORMULA VAULT</h2>
+    <div style="display:grid; gap:12px; margin-top:10px;">
+      <div style="background:var(--bg-card); padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-weight:800; color:var(--accent-cyan);">Niels Bohr (1913) - Atomic Model</div>
+        <p class="hindi-text" style="color:#E2E8F0; margin-top:4px;">
+          इलेक्ट्रॉन केवल उन्हीं कक्षाओं (Stationary Orbits) में घूमते हैं जिनका कोणीय संवेग (Angular Momentum) पूर्ण गुणज होता है:
+        </p>
+        <div style="margin-top:6px; color:#34D399;">$$mvr = \frac{nh}{2\pi} \quad , \quad E_n = -13.6 \frac{Z^2}{n^2} \text{ eV}$$</div>
+      </div>
+
+      <div style="background:var(--bg-card); padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.1);">
+        <div style="font-weight:800; color:var(--accent-amber);">Svante Arrhenius & Thermodynamics</div>
+        <p class="hindi-text" style="color:#E2E8F0; margin-top:4px;">
+          गिब्स मुक्त ऊर्जा (Gibbs Free Energy) और साम्य स्थिरांक (Equilibrium Constant) के बीच संबंध:
+        </p>
+        <div style="margin-top:6px; color:#38BDF8;">$$\Delta G^\circ = -2.303 RT \log_{10} K_{eq}$$</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('home', this)"><span class="nav-icon">🏠</span><span>Home</span></button>
+    <button class="nav-item" onclick="switchTab('flashcards', this)"><span class="nav-icon">🃏</span><span>Flashcards</span></button>
+    <button class="nav-item" onclick="switchTab('games', this)"><span class="nav-icon">🎮</span><span>Games</span></button>
+    <button class="nav-item" onclick="switchTab('lab', this)"><span class="nav-icon">🧪</span><span>Lab & Graph</span></button>
+    <button class="nav-item" onclick="switchTab('library', this)"><span class="nav-icon">📚</span><span>Library</span></button>
+  </nav>
+
+  <script>
+    /* =========================================================================
+       1. SYNTH SOUND ENGINE & SAFE KATEX RENDERER (Fixes $ bug)
+       ========================================================================= */
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(freq = 520, type = 'sine', duration = 0.1) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.11, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundSuccess() {
+      playTone(587.33, 'triangle', 0.09);
+      setTimeout(() => playTone(880, 'triangle', 0.16), 85);
+    }
+    function soundError() { playTone(210, 'sawtooth', 0.18); }
+
+    function renderMath(el = document.body) {
+      if (window.renderMathInElement) {
+        renderMathInElement(el, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    /* =========================================================================
+       2. PERSISTENT STATE (Zero Data Loss + Solved Cards Tracking)
+       ========================================================================= */
+    const STORAGE_KEY = 'CHEM_EXPLORER_V1_STATE';
+    let appState = {
+      user: { name: '', gender: 'male', loggedIn: false },
+      xp: 0,
+      streak: 1,
+      dailyCardsCount: 0,
+      cardLang: 'hi', // 'hi' or 'en'
+      solvedCards: [], // Tracks card IDs so repeat answers give +5 XP instead of +10 XP
+      periodicGame: {
+        unlockedLevel: 1,
+        currentLevel: 1,
+        placedByLevel: { 1: [], 2: [], 3: [], 4: [], 5: [] }
+      },
+      aufbauGame: { unlockedLevel: 1, currentLevel: 1 },
+      quantumGame: { unlockedLevel: 1, currentLevel: 1 }
+    };
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          appState = { ...appState, ...parsed };
+          if (!Array.isArray(appState.solvedCards)) appState.solvedCards = [];
+          appState.periodicGame = { ...appState.periodicGame, ...(parsed.periodicGame || {}) };
+          appState.aufbauGame = { ...appState.aufbauGame, ...(parsed.aufbauGame || {}) };
+          appState.quantumGame = { ...appState.quantumGame, ...(parsed.quantumGame || {}) };
+        } catch (e) {}
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      updateHeaderUI();
+    }
+
+    function updateHeaderUI() {
+      document.getElementById('header-name').textContent = appState.user.name || 'Aspirant';
+      document.getElementById('header-avatar').textContent = appState.user.gender === 'female' ? '👩‍🔬' : '👨‍🔬';
+      document.getElementById('xp-count').textContent = appState.xp;
+      document.getElementById('streak-count').textContent = appState.streak;
+      const done = Math.min(10, appState.dailyCardsCount);
+      document.getElementById('daily-cards-done').textContent = done;
+      document.getElementById('daily-progress-fill').style.width = (done * 10) + '%';
+    }
+
+    /* =========================================================================
+       3. LOGIN HANDLERS
+       ========================================================================= */
+    let tempGender = 'male';
+    function selectGender(g) {
+      tempGender = g;
+      document.getElementById('gen-male').classList.toggle('active', g === 'male');
+      document.getElementById('gen-female').classList.toggle('active', g === 'female');
+    }
+
+    function completeLogin() {
+      const nameInput = document.getElementById('user-name-input').value.trim();
+      if (!nameInput) { soundError(); alert('Please enter your name!'); return; }
+      appState.user.name = nameInput;
+      appState.user.gender = tempGender;
+      appState.user.loggedIn = true;
+      saveState();
+      soundSuccess();
+      document.getElementById('login-modal').style.display = 'none';
+    }
+
+    /* =========================================================================
+       4. BILINGUAL FLASHCARDS (HI <-> EN Toggle + Repeat +5 XP Logic)
+       ========================================================================= */
+    const FLASHCARD_DB = {
+      ch1: [
+        {
+          id: "ch1_1", topic: "Molarity vs Molality",
+          q_en: "Why does Molality (m) NOT change with temperature while Molarity (M) changes?",
+          q_hi: "तापमान (Temperature) बदलने पर मोललता (Molality) क्यों नहीं बदलती, जबकि मोलरता (Molarity) बदल जाती है?",
+          a_hi: "मोललता (Molality) विलायक के द्रव्यमान (Mass of Solvent) पर निर्भर करती है जो तापमान से स्वतंत्र है, जबकि मोलरता (Molarity) विलयन के आयतन (Volume) पर निर्भर करती है।",
+          a_en: "Molality depends on the mass of solvent (temperature independent), whereas Molarity depends on the volume of solution which expands with temperature.",
+          formula: "$$M = \\frac{n}{V_{\\text{L}}} \\quad , \\quad m = \\frac{n}{W_{\\text{kg}}}$$"
+        },
+        {
+          id: "ch1_2", topic: "Limiting Reagent",
+          q_en: "How do you quickly find the Limiting Reagent (LR) in a balanced chemical reaction?",
+          q_hi: "किसी संतुलित रासायनिक अभिक्रिया में सीमांत अभिकर्मक (Limiting Reagent) को सबसे तेज़ी से कैसे पहचानते हैं?",
+          a_hi: "जिस अभिकारक (Reactant) के लिए 'दिए गए मोल / रससमीकरणमितीय गुणांक' (Given Moles / Stoichiometric Coefficient) का अनुपात सबसे कम (Minimum) होता है, वही Limiting Reagent कहलाता है।",
+          a_en: "The reactant having the minimum ratio of Given Moles divided by its Stoichiometric Coefficient is the Limiting Reagent.",
+          formula: "$$\\text{LR} = \\min\\left(\\frac{\\text{Given Moles }(n)}{\\text{Stoichiometric Coeff.}}\\right)$$"
+        },
+        {
+          id: "ch1_3", topic: "Law of Multiple Proportions",
+          q_en: "Who gave the Law of Multiple Proportions and what is its classic NCERT example?",
+          q_hi: "गुणित अनुपात का नियम (Law of Multiple Proportions) किसने दिया और इसका मुख्य उदाहरण क्या है?",
+          a_hi: "जॉन डाल्टन (John Dalton, 1803) के अनुसार जब दो तत्व मिलकर एक से अधिक यौगिक बनाते हैं, तो एक तत्व के निश्चित द्रव्यमान से जुड़ने वाले दूसरे तत्व के द्रव्यमान छोटे पूर्णांकों के अनुपात में होते हैं।",
+          a_en: "Proposed by John Dalton (1803): when two elements form more than one compound, the masses of one element combining with a fixed mass of the other are in a simple whole-number ratio.",
+          formula: "$$\\text{CO (12:16)} \\;\\&\\; \\text{CO}_2\\text{ (12:32)} \\Rightarrow \\text{O ratio} = 1:2$$"
+        }
+      ],
+      ch2: [
+        {
+          id: "ch2_1", topic: "Heisenberg Principle",
+          q_en: "State Heisenberg's Uncertainty Principle and its mathematical formula.",
+          q_hi: "हाइजेनबर्ग का अनिश्चितता सिद्धांत (Heisenberg's Uncertainty Principle) क्या है?",
+          a_hi: "किसी सूक्ष्म गतिशील कण (जैसे इलेक्ट्रॉन) की सटीक स्थिति (Position) और संवेग (Momentum) का एक ही समय पर शत-प्रतिशत शुद्धता से निर्धारण करना असंभव है।",
+          a_en: "It is impossible to determine simultaneously the exact position and exact momentum (or velocity) of a microscopic moving particle like an electron.",
+          formula: "$$\\Delta x \\cdot \\Delta p_x \\ge \\frac{h}{4\\pi}$$"
+        },
+        {
+          id: "ch2_2", topic: "Orbital Nodes",
+          q_en: "What are the formulas for Radial Nodes and Angular Nodes in an orbital?",
+          q_hi: "किसी परमाणु कक्षक (Orbital) में त्रिज्य नोड्स (Radial Nodes) और कोणीय नोड्स (Angular Nodes) का सूत्र क्या है?",
+          a_hi: "त्रिज्य नोड्स (Radial/Spherical Nodes) = $n - l - 1$ और कोणीय नोड्स (Angular/Nodal Planes) = $l$ होते हैं। कुल नोड्स = $n - 1$।",
+          a_en: "Radial Nodes = n - l - 1, Angular Nodes = l, and Total Nodes = n - 1.",
+          formula: "$$\\text{Radial} = n - l - 1 \\quad | \\quad \\text{Angular} = l$$"
+        }
+      ],
+      ch3: [
+        {
+          id: "ch3_1", topic: "Ionization Exception",
+          q_en: "Why is the First Ionization Enthalpy of Boron (B) less than Beryllium (Be)?",
+          q_hi: "बोरोन (B) की प्रथम आयनन एन्थैल्पी बेरिलियम (Be) से कम क्यों होती है?",
+          a_hi: "बेरिलियम ($1s^2 2s^2$) में पूर्ण पूरित $2s$ कक्षक होता है जिसकी भेदन क्षमता (Penetration) $2p$ से अधिक होती है, अतः Be से इलेक्ट्रॉन निकालना B ($2p^1$) से कठिन है।",
+          a_en: "Be has a fully-filled 2s subshell with higher penetration power than the 2p electron of Boron, making electron removal harder in Be.",
+          formula: "$$IE_1:\\; \\text{Li} < \\text{B} < \\text{Be} < \\text{C} < \\text{O} < \\text{N}$$"
+        }
+      ],
+      ch4: [
+        {
+          id: "ch4_1", topic: "Dipole Moment",
+          q_en: "Why does NH3 have a much higher Dipole Moment than NF3?",
+          q_hi: "फ्लोरीन की उच्च विद्युत ऋणात्मकता के बावजूद NH3 का द्विध्रुव आघूर्ण (Dipole Moment) NF3 से अधिक क्यों है?",
+          a_hi: "अमोनिया में एकाकी युग्म (Lone Pair) का कक्षक द्विध्रुव और N-H बंध द्विध्रुव एक ही दिशा में जुड़ते हैं, जबकि NF3 में वे विपरीत दिशा में होकर एक-दूसरे को घटा देते हैं।",
+          a_en: "In NH3, the orbital dipole due to the lone pair is in the same direction as the resultant N-H bond dipoles, whereas in NF3 they oppose each other.",
+          formula: "$$\\mu(\\text{NH}_3) = 1.47\\text{ D} > \\mu(\\text{NF}_3) = 0.24\\text{ D}$$"
+        }
+      ],
+      ch5: [
+        {
+          id: "ch5_1", topic: "Gibbs Spontaneity",
+          q_en: "Under what condition of Enthalpy and Entropy is a reaction spontaneous at ALL temperatures?",
+          q_hi: "एन्थैल्पी और एन्ट्रॉपी की किस स्थिति में कोई अभिक्रिया सभी तापमानों पर स्वतः प्रवर्तित (Spontaneous) होती है?",
+          a_hi: "जब अभिक्रिया ऊष्माक्षेपी हो ($\\Delta H < 0$) और एन्ट्रॉपी बढ़ रही हो ($\\Delta S > 0$), तब $\\Delta G$ प्रत्येक तापमान पर ऋणात्मक होता है।",
+          a_en: "When the reaction is exothermic (Delta H < 0) and entropy increases (Delta S > 0), Delta G remains negative at all temperatures.",
+          formula: "$$\\Delta G = \\Delta H - T\\Delta S < 0$$"
+        }
+      ]
+    };
+
+    let currentDeck = [];
+    let currentCardIndex = 0;
+
+    function loadFlashcardDeck() {
+      const ch = document.getElementById('chapter-selector').value;
+      currentDeck = FLASHCARD_DB[ch] || FLASHCARD_DB.ch1;
+      currentCardIndex = 0;
+      renderFlashcard();
+    }
+
+    function toggleCardLanguage() {
+      appState.cardLang = appState.cardLang === 'hi' ? 'en' : 'hi';
+      playTone(620, 'sine', 0.08);
+      saveState();
+      renderFlashcard();
+    }
+
+    function renderFlashcard() {
+      const card = currentDeck[currentCardIndex];
+      const isHi = appState.cardLang === 'hi';
+      const alreadySolved = appState.solvedCards.includes(card.id);
+
+      document.getElementById('deck-counter').textContent = `Card ${currentCardIndex + 1}/${currentDeck.length}`;
+      document.getElementById('fc-topic').textContent = card.topic;
+      document.getElementById('fc-lang-btn').textContent = isHi ? '🌐 भाषा: हिंदी (Switch to EN)' : '🌐 Lang: English (हिंदी में बदलें)';
+
+      const qEl = document.getElementById('fc-question');
+      qEl.textContent = isHi ? card.q_hi : card.q_en;
+      qEl.className = isHi ? 'card-question hindi-text' : 'card-question';
+
+      const aEl = document.getElementById('fc-ans-text');
+      aEl.innerHTML = isHi ? card.a_hi : card.a_en;
+      aEl.className = isHi ? 'hindi-text' : '';
+
+      document.getElementById('fc-formula').innerHTML = card.formula;
+      document.getElementById('fc-answer-box').style.display = 'none';
+      document.getElementById('fc-reveal-btn').style.display = 'block';
+
+      // Update XP button text based on whether user has already answered this card
+      const rightBtn = document.getElementById('fc-right-btn');
+      rightBtn.textContent = alreadySolved ? 'Got It! (Repeat +5 XP) ➡️' : 'Got It! (+10 XP) ➡️';
+
+      renderMath(document.getElementById('active-flashcard'));
+    }
+
+    function revealFlashcardAnswer() {
+      playTone(640, 'sine', 0.09);
+      document.getElementById('fc-answer-box').style.display = 'block';
+      document.getElementById('fc-reveal-btn').style.display = 'none';
+      renderMath(document.getElementById('active-flashcard'));
+    }
+
+    function handleCardSwipe(isCorrect) {
+      const box = document.getElementById('active-flashcard');
+      const card = currentDeck[currentCardIndex];
+
+      if (isCorrect) {
+        soundSuccess();
+        const isRepeat = appState.solvedCards.includes(card.id);
+        appState.xp += isRepeat ? 5 : 10;
+        if (!isRepeat) {
+          appState.solvedCards.push(card.id);
+          appState.dailyCardsCount += 1;
+        }
+        box.style.transform = 'translateX(40px) rotate(3deg)';
+        box.style.borderColor = '#10B981';
+      } else {
+        soundError();
+        box.style.transform = 'translateX(-40px) rotate(-3deg)';
+        box.style.borderColor = '#F43F5E';
+      }
+      saveState();
+
+      setTimeout(() => {
+        box.style.transform = 'none';
+        box.style.borderColor = 'rgba(6, 182, 212, 0.38)';
+        currentCardIndex = (currentCardIndex + 1) % currentDeck.length;
+        renderFlashcard();
+      }, 230);
+    }
+
+    /* =========================================================================
+       5. UNIVERSAL GAME TIMER (30 Sec to 5 Min + Level Completion XP)
+       ========================================================================= */
+    let gameTimerInterval = null;
+    let remainingSeconds = 120;
+
+    function resetAndStartGameTimer() {
+      clearInterval(gameTimerInterval);
+      const sel = document.getElementById('game-timer-select');
+      remainingSeconds = parseInt(sel ? sel.value : 120, 10);
+      updateTimerUI();
+
+      gameTimerInterval = setInterval(() => {
+        remainingSeconds--;
+        updateTimerUI();
+        if (remainingSeconds <= 0) {
+          clearInterval(gameTimerInterval);
+          soundError();
+          alert('⏰ Time Up! Try this level again.');
+          resetAndStartGameTimer();
+        }
+      }, 1000);
+    }
+
+    function updateTimerUI() {
+      const m = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+      const s = String(remainingSeconds % 60).padStart(2, '0');
+      const el = document.getElementById('game-timer-display');
+      if (el) el.textContent = `${m}:${s}`;
+    }
+
+    function awardLevelCompletionXP(levelNumber) {
+      const baseXP = (levelNumber === 5) ? 100 : 50;
+      const timeBonus = Math.min(25, Math.floor(remainingSeconds / 10));
+      const totalWon = baseXP + timeBonus;
+      appState.xp += totalWon;
+      saveState();
+      soundSuccess();
+      alert(`🎉 Level ${levelNumber} Complete!\nBase Reward: +${baseXP} XP\nSpeed Bonus: +${timeBonus} XP\nTotal Added: +${totalWon} XP!`);
+    }
+
+    function switchGameModule(mod) {
+      ['pt', 'aufbau', 'quantum'].forEach(m => {
+        document.getElementById('game-mod-' + m).style.display = (m === mod) ? 'block' : 'none';
+        document.getElementById('gtab-' + m).classList.toggle('active', m === mod);
+      });
+      resetAndStartGameTimer();
+      if (mod === 'aufbau') initAufbauGame();
+      if (mod === 'quantum') initQuantumGame();
+    }
+
+    /* =========================================================================
+       6. GAME #1: 5-LEVEL PERIODIC TABLE (Responsive 18-Col so He is Visible!)
+       ========================================================================= */
+    const RAW_ELEMENTS = [
+      [1,"H","1.008",1,1,"s"],[2,"He","4.002",1,18,"s"],
+      [3,"Li","6.94",2,1,"s"],[4,"Be","9.012",2,2,"s"],[5,"B","10.81",2,13,"p"],[6,"C","12.01",2,14,"p"],[7,"N","14.00",2,15,"p"],[8,"O","15.99",2,16,"p"],[9,"F","18.99",2,17,"p"],[10,"Ne","20.18",2,18,"p"],
+      [11,"Na","22.99",3,1,"s"],[12,"Mg","24.30",3,2,"s"],[13,"Al","26.98",3,13,"p"],[14,"Si","28.08",3,14,"p"],[15,"P","30.97",3,15,"p"],[16,"S","32.06",3,16,"p"],[17,"Cl","35.45",3,17,"p"],[18,"Ar","39.95",3,18,"p"],
+      [19,"K","39.10",4,1,"s"],[20,"Ca","40.08",4,2,"s"],[21,"Sc","44.96",4,3,"d"],[22,"Ti","47.87",4,4,"d"],[23,"V","50.94",4,5,"d"],[24,"Cr","51.99",4,6,"d"],[25,"Mn","54.94",4,7,"d"],[26,"Fe","55.85",4,8,"d"],[27,"Co","58.93",4,9,"d"],[28,"Ni","58.69",4,10,"d"],[29,"Cu","63.55",4,11,"d"],[30,"Zn","65.38",4,12,"d"],[31,"Ga","69.72",4,13,"p"],[32,"Ge","72.63",4,14,"p"],[33,"As","74.92",4,15,"p"],[34,"Se","78.97",4,16,"p"],[35,"Br","79.90",4,17,"p"],[36,"Kr","83.80",4,18,"p"],
+      [37,"Rb","85.47",5,1,"s"],[38,"Sr","87.62",5,2,"s"],[39,"Y","88.91",5,3,"d"],[40,"Zr","91.22",5,4,"d"],[41,"Nb","92.91",5,5,"d"],[42,"Mo","95.95",5,6,"d"],[43,"Tc","(98)",5,7,"d"],[44,"Ru","101.1",5,8,"d"],[45,"Rh","102.9",5,9,"d"],[46,"Pd","106.4",5,10,"d"],[47,"Ag","107.9",5,11,"d"],[48,"Cd","112.4",5,12,"d"],[49,"In","114.8",5,13,"p"],[50,"Sn","118.7",5,14,"p"],[51,"Sb","121.8",5,15,"p"],[52,"Te","127.6",5,16,"p"],[53,"I","126.9",5,17,"p"],[54,"Xe","131.3",5,18,"p"],
+      [55,"Cs","132.9",6,1,"s"],[56,"Ba","137.3",6,2,"s"],[57,"La","138.9",6,3,"d"],[72,"Hf","178.5",6,4,"d"],[73,"Ta","180.9",6,5,"d"],[74,"W","183.8",6,6,"d"],[75,"Re","186.2",6,7,"d"],[76,"Os","190.2",6,8,"d"],[77,"Ir","192.2",6,9,"d"],[78,"Pt","195.1",6,10,"d"],[79,"Au","197.0",6,11,"d"],[80,"Hg","200.6",6,12,"d"],[81,"Tl","204.4",6,13,"p"],[82,"Pb","207.2",6,14,"p"],[83,"Bi","208.9",6,15,"p"],[84,"Po","(209)",6,16,"p"],[85,"At","(210)",6,17,"p"],[86,"Rn","(222)",6,18,"p"],
+      [87,"Fr","(223)",7,1,"s"],[88,"Ra","(226)",7,2,"s"],[89,"Ac","(227)",7,3,"d"],[104,"Rf","(267)",7,4,"d"],[105,"Db","(268)",7,5,"d"],[106,"Sg","(269)",7,6,"d"],[107,"Bh","(270)",7,7,"d"],[108,"Hs","(277)",7,8,"d"],[109,"Mt","(278)",7,9,"d"],[110,"Ds","(281)",7,10,"d"],[111,"Rg","(282)",7,11,"d"],[112,"Cn","(285)",7,12,"d"],[113,"Nh","(286)",7,13,"p"],[114,"Fl","(289)",7,14,"p"],[115,"Mc","(290)",7,15,"p"],[116,"Lv","(293)",7,16,"p"],[117,"Ts","(294)",7,17,"p"],[118,"Og","(294)",7,18,"p"],
+      [58,"Ce","140.1",9,4,"f"],[59,"Pr","140.9",9,5,"f"],[60,"Nd","144.2",9,6,"f"],[61,"Pm","(145)",9,7,"f"],[62,"Sm","150.4",9,8,"f"],[63,"Eu","152.0",9,9,"f"],[64,"Gd","157.3",9,10,"f"],[65,"Tb","158.9",9,11,"f"],[66,"Dy","162.5",9,12,"f"],[67,"Ho","164.9",9,13,"f"],[68,"Er","167.3",9,14,"f"],[69,"Tm","168.9",9,15,"f"],[70,"Yb","173.0",9,16,"f"],[71,"Lu","175.0",9,17,"f"],
+      [90,"Th","232.0",10,4,"f"],[91,"Pa","231.0",10,5,"f"],[92,"U","238.0",10,6,"f"],[93,"Np","(237)",10,7,"f"],[94,"Pu","(244)",10,8,"f"],[95,"Am","(243)",10,9,"f"],[96,"Cm","(247)",10,10,"f"],[97,"Bk","(247)",10,11,"f"],[98,"Cf","(251)",10,12,"f"],[99,"Es","(252)",10,13,"f"],[100,"Fm","(257)",10,14,"f"],[101,"Md","(258)",10,15,"f"],[102,"No","(259)",10,16,"f"],[103,"Lr","(266)",10,17,"f"]
+    ];
+
+    const PT_LEVELS = [
+      { id: 1, name: "Lvl 1: s-Block", filter: e => e[5] === 's' },
+      { id: 2, name: "Lvl 2: p-Block", filter: e => e[5] === 'p' },
+      { id: 3, name: "Lvl 3: d-Block", filter: e => e[5] === 'd' },
+      { id: 4, name: "Lvl 4: f-Block", filter: e => e[5] === 'f' },
+      { id: 5, name: "Lvl 5: 118 Boss", filter: () => true }
+    ];
+
+    let selectedElementZ = null;
+    let currentTrayElements = [];
+    let ptZoomed = false;
+
+    function togglePtZoom() {
+      ptZoomed = !ptZoomed;
+      const board = document.getElementById('pt-grid-board');
+      board.classList.toggle('zoomed', ptZoomed);
+      document.getElementById('pt-zoom-btn').textContent = ptZoomed ? '🔍 Zoom: HD Scroll' : '🔍 Zoom: Fit Screen (He Visible)';
+    }
+
+    function initPeriodicGame() {
+      renderLevelBar();
+      loadPeriodicLevel(appState.periodicGame.currentLevel || 1);
+      resetAndStartGameTimer();
+    }
+
+    function renderLevelBar() {
+      const bar = document.getElementById('pt-level-bar');
+      bar.innerHTML = '';
+      PT_LEVELS.forEach(lvl => {
+        const isUnlocked = lvl.id <= appState.periodicGame.unlockedLevel;
+        const btn = document.createElement('button');
+        btn.className = `lvl-btn ${appState.periodicGame.currentLevel === lvl.id ? 'active' : ''} ${!isUnlocked ? 'locked' : ''}`;
+        btn.textContent = isUnlocked ? `⭐ ${lvl.name}` : `🔒 ${lvl.name}`;
+        btn.onclick = () => {
+          if (!isUnlocked) { soundError(); return; }
+          loadPeriodicLevel(lvl.id);
+        };
+        bar.appendChild(btn);
+      });
+    }
+
+    function loadPeriodicLevel(lvlId) {
+      appState.periodicGame.currentLevel = lvlId;
+      selectedElementZ = null;
+      const lvlObj = PT_LEVELS.find(l => l.id === lvlId);
+      const placedArr = appState.periodicGame.placedByLevel[lvlId] || [];
+
+      const targetElements = RAW_ELEMENTS.filter(lvlObj.filter);
+      currentTrayElements = targetElements.filter(e => !placedArr.includes(e[0]));
+      shuffleArray(currentTrayElements);
+
+      saveState();
+      renderLevelBar();
+      renderPeriodicTray();
+      renderPeriodicBoard(lvlObj, placedArr, targetElements.length);
+      resetAndStartGameTimer();
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+
+    function shufflePeriodicTray() {
+      playTone(600, 'triangle', 0.09);
+      shuffleArray(currentTrayElements);
+      renderPeriodicTray();
+    }
+
+    function renderPeriodicTray() {
+      const tray = document.getElementById('pt-tile-tray');
+      tray.innerHTML = '';
+      if (currentTrayElements.length === 0) {
+        tray.innerHTML = `<div style="color:#34D399; font-weight:800; margin:auto;">🎉 Level Cleared! <button onclick="resetCurrentLevel()" style="margin-left:10px; padding:6px 12px; border-radius:8px; background:#06B6D4; border:none; color:#fff; font-weight:700; cursor:pointer;">Replay Level</button></div>`;
+        return;
+      }
+
+      currentTrayElements.forEach(el => {
+        const [z, sym, mass, row, col, block] = el;
+        const tile = document.createElement('div');
+        tile.className = `elem-tile block-${block} ${selectedElementZ === z ? 'selected-tile' : ''}`;
+        tile.draggable = true;
+        tile.innerHTML = `<div class="tile-z">${z}</div><div class="tile-sym">${sym}</div><div class="tile-mass">${mass}</div>`;
+
+        tile.onclick = () => {
+          selectedElementZ = (selectedElementZ === z) ? null : z;
+          playTone(500, 'sine', 0.06);
+          renderPeriodicTray();
+        };
+
+        tile.ondragstart = (ev) => {
+          selectedElementZ = z;
+          ev.dataTransfer.setData('text/plain', z);
+        };
+        tray.appendChild(tile);
+      });
+    }
+
+    function renderPeriodicBoard(lvlObj, placedArr, totalTargetCount) {
+      const board = document.getElementById('pt-grid-board');
+      board.innerHTML = '';
+      document.getElementById('pt-placed-count').textContent = `${placedArr.length}/${totalTargetCount}`;
+
+      RAW_ELEMENTS.forEach(el => {
+        const [z, sym, mass, row, col, block] = el;
+        const isTargetInLevel = lvlObj.filter(el);
+        const isPlaced = placedArr.includes(z);
+
+        const slot = document.createElement('div');
+        slot.style.gridRow = row;
+        slot.style.gridColumn = col;
+
+        if (isPlaced) {
+          slot.className = `pt-slot filled-slot block-${block}`;
+          slot.innerHTML = `<strong style="font-size:0.68rem;">${sym}</strong>`;
+        } else if (isTargetInLevel) {
+          slot.className = `pt-slot target-slot`;
+          slot.innerHTML = `<span>${z}</span>`;
+          slot.onclick = () => attemptPlaceElement(z);
+          slot.ondragover = (ev) => ev.preventDefault();
+          slot.ondrop = (ev) => {
+            ev.preventDefault();
+            selectedElementZ = parseInt(ev.dataTransfer.getData('text/plain'), 10) || selectedElementZ;
+            attemptPlaceElement(z);
+          };
+        } else {
+          slot.className = `pt-slot dimmed-slot`;
+          slot.innerHTML = `<span>${sym}</span>`;
+        }
+        board.appendChild(slot);
+      });
+    }
+
+    function attemptPlaceElement(targetSlotZ) {
+      if (!selectedElementZ) return;
+      const lvlId = appState.periodicGame.currentLevel;
+      const placedArr = appState.periodicGame.placedByLevel[lvlId] || [];
+
+      if (selectedElementZ === targetSlotZ) {
+        soundSuccess();
+        if (!placedArr.includes(targetSlotZ)) {
+          placedArr.push(targetSlotZ);
+          appState.periodicGame.placedByLevel[lvlId] = placedArr;
+        }
+        currentTrayElements = currentTrayElements.filter(e => e[0] !== targetSlotZ);
+        selectedElementZ = null;
+
+        if (currentTrayElements.length === 0) {
+          clearInterval(gameTimerInterval);
+          if (appState.periodicGame.unlockedLevel < 5 && lvlId === appState.periodicGame.unlockedLevel) {
+            appState.periodicGame.unlockedLevel += 1;
+          }
+          awardLevelCompletionXP(lvlId);
+        }
+
+        saveState();
+        const lvlObj = PT_LEVELS.find(l => l.id === lvlId);
+        const total = RAW_ELEMENTS.filter(lvlObj.filter).length;
+        renderLevelBar();
+        renderPeriodicTray();
+        renderPeriodicBoard(lvlObj, placedArr, total);
+      } else {
+        soundError();
+      }
+    }
+
+    function resetCurrentLevel() {
+      const lvlId = appState.periodicGame.currentLevel;
+      appState.periodicGame.placedByLevel[lvlId] = [];
+      saveState();
+      loadPeriodicLevel(lvlId);
+    }
+
+    /* =========================================================================
+       7. GAME #2: AUFBAU ORBITAL FILLER (5 LEVELS WITH Cr/Cu/Fe2+ EXCEPTIONS)
+       ========================================================================= */
+    const AUFBAU_LEVELS = [
+      { id: 1, title: "Level 1: Nitrogen (Z = 7)", hint: "हुंड के नियम (Hund's Rule) के अनुसार 2p के तीनों कक्षकों में पहले एक-एक इलेक्ट्रॉन भरें।", subshells: [{name:"1s", boxes:1, target:[2]}, {name:"2s", boxes:1, target:[2]}, {name:"2p", boxes:3, target:[1,1,1]}] },
+      { id: 2, title: "Level 2: Magnesium (Z = 12)", hint: "1s, 2s, 2p और 3s को पूर्ण रूप से भरें।", subshells: [{name:"1s", boxes:1, target:[2]}, {name:"2s", boxes:1, target:[2]}, {name:"2p", boxes:3, target:[2,2,2]}, {name:"3s", boxes:1, target:[2]}] },
+      { id: 3, title: "Level 3: Scandium (Z = 21)", hint: "[Ar] के बाद पहले 4s में 2 इलेक्ट्रॉन और फिर 3d में 1 इलेक्ट्रॉन जाता है।", subshells: [{name:"4s", boxes:1, target:[2]}, {name:"3d", boxes:5, target:[1,0,0,0,0]}] },
+      { id: 4, title: "Level 4: Chromium Exception (Z = 24)", hint: "NCERT अपवाद! अर्ध-पूरित (Half-filled) स्थायित्व के लिए 4s¹ 3d⁵ होता है।", subshells: [{name:"4s", boxes:1, target:[1]}, {name:"3d", boxes:5, target:[1,1,1,1,1]}] },
+      { id: 5, title: "Level 5 Boss: Fe²⁺ Ion (Z = 26, -2e⁻)", hint: "आयन बनते समय इलेक्ट्रॉन बाह्यतम कक्षक (4s) से निकलते हैं, अतः 4s⁰ 3d⁶ होगा!", subshells: [{name:"4s", boxes:1, target:[0]}, {name:"3d", boxes:5, target:[2,1,1,1,1]}] }
+    ];
+
+    let aufState = [];
+
+    function initAufbauGame() {
+      const bar = document.getElementById('aufbau-level-bar');
+      bar.innerHTML = '';
+      AUFBAU_LEVELS.forEach(l => {
+        const unlocked = l.id <= appState.aufbauGame.unlockedLevel;
+        const btn = document.createElement('button');
+        btn.className = `lvl-btn ${appState.aufbauGame.currentLevel === l.id ? 'active' : ''} ${!unlocked ? 'locked' : ''}`;
+        btn.textContent = unlocked ? `⭐ Lvl ${l.id}` : `🔒 Lvl ${l.id}`;
+        btn.onclick = () => { if (unlocked) { appState.aufbauGame.currentLevel = l.id; initAufbauGame(); } else soundError(); };
+        bar.appendChild(btn);
+      });
+
+      const cur = AUFBAU_LEVELS.find(x => x.id === appState.aufbauGame.currentLevel);
+      document.getElementById('auf-target-badge').textContent = `Level ${cur.id} of 5`;
+      document.getElementById('auf-prompt').textContent = cur.title;
+      document.getElementById('auf-hint').textContent = cur.hint;
+
+      aufState = cur.subshells.map(s => Array(s.boxes).fill(0));
+      renderAufbauBoxes(cur);
+    }
+
+    function renderAufbauBoxes(cur) {
+      const area = document.getElementById('auf-boxes-area');
+      area.innerHTML = '';
+      cur.subshells.forEach((sub, sIdx) => {
+        const card = document.createElement('div');
+        card.className = 'subshell-card';
+        card.innerHTML = `<div style="font-size:0.78rem; font-weight:800; color:#94A3B8;">${sub.name} Subshell</div>`;
+        const row = document.createElement('div');
+        row.className = 'orb-boxes-row';
+
+        aufState[sIdx].forEach((val, bIdx) => {
+          const box = document.createElement('div');
+          box.className = 'orb-box';
+          box.textContent = val === 1 ? '↑' : (val === 2 ? '↑↓' : '');
+          box.onclick = () => {
+            aufState[sIdx][bIdx] = (aufState[sIdx][bIdx] + 1) % 3;
+            playTone(540, 'sine', 0.06);
+            renderAufbauBoxes(cur);
+          };
+          row.appendChild(box);
+        });
+        card.appendChild(row);
+        area.appendChild(card);
+      });
+    }
+
+    function verifyAufbauConfig() {
+      const cur = AUFBAU_LEVELS.find(x => x.id === appState.aufbauGame.currentLevel);
+      let ok = true;
+      cur.subshells.forEach((sub, sIdx) => {
+        const sumUser = aufState[sIdx].reduce((a,b)=>a+b, 0);
+        const sumTarget = sub.target.reduce((a,b)=>a+b, 0);
+        const singlesUser = aufState[sIdx].filter(v => v === 1).length;
+        const singlesTarget = sub.target.filter(v => v === 1).length;
+        if (sumUser !== sumTarget || singlesUser !== singlesTarget) ok = false;
+      });
+
+      if (ok) {
+        if (appState.aufbauGame.unlockedLevel < 5 && cur.id === appState.aufbauGame.unlockedLevel) {
+          appState.aufbauGame.unlockedLevel++;
+        }
+        awardLevelCompletionXP(cur.id);
+        initAufbauGame();
+      } else {
+        soundError();
+        alert('❌ Incorrect orbital filling! Check Pauli & Hund\'s Rule.');
+      }
+    }
+
+    /* =========================================================================
+       8. GAME #3: QUANTUM NUMBER VALIDATOR (5 LEVELS)
+       ========================================================================= */
+    const QUANTUM_LEVELS = [
+      { id: 1, set: "$$n = 2,\\; l = 2,\\; m_l = 0,\\; m_s = +1/2$$", valid: false, exp: "असंभव! क्योंकि l का मान कभी भी n के बराबर नहीं हो सकता (l = 0 से n-1)।" },
+      { id: 2, set: "$$n = 3,\\; l = 2,\\; m_l = -2,\\; m_s = -1/2$$", valid: true, exp: "बिल्कुल सही! यह 3d कक्षक के एक इलेक्ट्रॉन को दर्शाता है।" },
+      { id: 3, set: "$$n = 3,\\; l = 1,\\; m_l = +2,\\; m_s = +1/2$$", valid: false, exp: "असंभव! जब l = 1 है, तो m_l केवल -1, 0, +1 हो सकता है (+2 नहीं)।" },
+      { id: 4, set: "$$n = 4,\\; l = 3,\\; m_l = -3,\\; m_s = +1/2$$", valid: true, exp: "सही! यह 4f उपकोश का एक वैध क्वांटम सेट है।" },
+      { id: 5, set: "$$n = 2,\\; l = 1,\\; m_l = 0,\\; m_s = 0$$", valid: false, exp: "असंभव! चक्रण क्वांटम संख्या (m_s) केवल +1/2 या -1/2 हो सकती है, शून्य नहीं।" }
+    ];
+
+    function initQuantumGame() {
+      const bar = document.getElementById('qn-level-bar');
+      bar.innerHTML = '';
+      QUANTUM_LEVELS.forEach(l => {
+        const unlocked = l.id <= appState.quantumGame.unlockedLevel;
+        const btn = document.createElement('button');
+        btn.className = `lvl-btn ${appState.quantumGame.currentLevel === l.id ? 'active' : ''} ${!unlocked ? 'locked' : ''}`;
+        btn.textContent = unlocked ? `⭐ Lvl ${l.id}` : `🔒 Lvl ${l.id}`;
+        btn.onclick = () => { if (unlocked) { appState.quantumGame.currentLevel = l.id; initQuantumGame(); } else soundError(); };
+        bar.appendChild(btn);
+      });
+
+      const cur = QUANTUM_LEVELS.find(x => x.id === appState.quantumGame.currentLevel);
+      document.getElementById('qn-lvl-tag').textContent = `Level ${cur.id} of 5`;
+      document.getElementById('qn-set-display').innerHTML = cur.set;
+      renderMath(document.getElementById('game-mod-quantum'));
+    }
+
+    function answerQuantum(userChoice) {
+      const cur = QUANTUM_LEVELS.find(x => x.id === appState.quantumGame.currentLevel);
+      if (userChoice === cur.valid) {
+        if (appState.quantumGame.unlockedLevel < 5 && cur.id === appState.quantumGame.unlockedLevel) {
+          appState.quantumGame.unlockedLevel++;
+        }
+        awardLevelCompletionXP(cur.id);
+        alert(cur.exp);
+        initQuantumGame();
+      } else {
+        soundError();
+        alert('❌ गलत जवाब! ' + cur.exp);
+      }
+    }
+
+    /* =========================================================================
+       9. INTERACTIVE LAB GRAPHS & CALCULATOR
+       ========================================================================= */
+    function drawLabGraph() {
+      const canvas = document.getElementById('gas-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const mode = document.getElementById('graph-mode-select').value;
+      const T = parseInt(document.getElementById('temp-slider').value, 10);
+      document.getElementById('temp-val').textContent = T;
+
+      const descEl = document.getElementById('graph-desc-hindi');
+      if (mode === 'boyle') {
+        descEl.innerHTML = "स्थिर तापमान पर गैस का दाब उसके आयतन के व्युत्क्रमानुपाती होता है: $$P \\propto \\frac{1}{V}$$";
+      } else if (mode === 'maxwell') {
+        descEl.innerHTML = "तापमान बढ़ने पर मैक्सवेल गति वितरण वक्र (Maxwell Speed Curve) दाईं ओर खिसकता है और चपटा (Broad) हो जाता है: $$u_{mp} < u_{avg} < u_{rms}$$";
+      } else {
+        descEl.innerHTML = "2s कक्षक के त्रिज्य प्रायिकता वक्र में 1 त्रिज्य नोड (Radial Node = $n - l - 1 = 1$) होता है जहाँ ग्राफ शून्य को छूता है।";
+      }
+      renderMath(descEl);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(35, 15); ctx.lineTo(35, 170); ctx.lineTo(340, 170);
+      ctx.stroke();
+
+      ctx.strokeStyle = mode === 'boyle' ? '#06B6D4' : (mode === 'maxwell' ? '#10B981' : '#F59E0B');
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+
+      for (let x = 38; x <= 335; x += 3) {
+        const u = (x - 35) / 30;
+        let yVal = 0;
+        if (mode === 'boyle') {
+          yVal = (T * 0.42) / (u + 0.35);
+        } else if (mode === 'maxwell') {
+          const a = 320 / T;
+          yVal = 190 * a * u * u * Math.exp(-a * u * u * 0.35);
+        } else {
+          // 2s Radial Probability with 1 node at u = 2.0
+          yVal = 45 * u * u * Math.pow(2 - u, 2) * Math.exp(-u * 0.75);
+        }
+        const y = 170 - Math.min(150, yVal);
+        if (x === 38) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    function runChemCalc() {
+      const n = parseFloat(document.getElementById('calc-moles').value) || 0;
+      const v = parseFloat(document.getElementById('calc-vol').value) || 1;
+      const M = (n / v).toFixed(3);
+      const pH = M > 0 ? (-Math.log10(M)).toFixed(2) : 'N/A';
+      document.getElementById('calc-output').textContent = `Molarity (M) = ${M} mol/L | Monoprotic Acid pH = ${pH}`;
+    }
+
+    /* =========================================================================
+       10. TAB NAVIGATION & INIT
+       ========================================================================= */
+    function switchTab(tabId, btnEl) {
+      playTone(540, 'sine', 0.06);
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('view-' + tabId).classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      if (tabId === 'lab') drawLabGraph();
+      if (tabId === 'games') resetAndStartGameTimer();
+      renderMath(document.getElementById('view-' + tabId));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      updateHeaderUI();
+      loadFlashcardDeck();
+      initPeriodicGame();
+      drawLabGraph();
+      setTimeout(() => renderMath(document.body), 400);
+
+      setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        if (!appState.user.loggedIn) {
+          document.getElementById('login-modal').style.display = 'flex';
+        }
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
