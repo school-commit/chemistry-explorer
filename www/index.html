@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#FFFDF5" />
+  <title>CHEMISTRY EXPLORER</title>
+
+  <!-- Google Fonts: Fredoka / Patrick Hand (English) + Teko / Noto Sans Devanagari (Hindi) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Patrick+Hand&family=Teko:wght@500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- KaTeX for Chemistry Formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <style>
+    :root {
+      --paper: #FFFDF5;
+      --grid: #EFEAD8;
+      --card: #FFFFFF;
+      --cream: #FFFDF6;
+      --paper2: #FDF9EE;
+      --ink: #1E1E1E;
+      --text: #111111;
+      --muted: #4D493C;
+      --green: #8EE08A;
+      --yellow: #FFD95A;
+      --coral: #FF9B90;
+      --sky: #CFE3FF;
+      --lav: #E5D4FF;
+      --mint: #CDEBCB;
+      --peach: #F8D9B8;
+      --blue: #388BFD;
+      --red: #E5322D;
+      --font-en: 'Fredoka', 'Patrick Hand', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --font-hi: 'Teko', 'Noto Sans Devanagari', 'Mukta', system-ui, sans-serif;
+      --paper-bg: linear-gradient(#EFEAD8 1px, transparent 1px), linear-gradient(90deg, #EFEAD8 1px, transparent 1px);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html { font-size: 16px; }
+    html[lang="hi"] { font-size: 18px; }
+
+    body {
+      background-color: #FFFDF5;
+      background-image: linear-gradient(#EFEAD8 1px, transparent 1px), linear-gradient(90deg, #EFEAD8 1px, transparent 1px);
+      background-size: 22px 22px;
+      background-attachment: fixed;
+      color: #111111;
+      font-family: var(--font-en);
+      font-weight: 500;
+      overflow-x: hidden;
+      min-height: 100vh;
+      padding-bottom: 96px;
+    }
+    html[lang="hi"] body, html[lang="hi"] button, html[lang="hi"] input, html[lang="hi"] select, html[lang="hi"] .hp-pop { font-family: var(--font-hi); }
+    button, input, select { font-family: inherit; color: #111111; }
+    b, strong { font-weight: 600; }
+    .muted { color: #4D493C; }
+    .hindi-text, .hindi-bold { font-family: var(--font-hi); }
+    .hindi-bold { font-weight: 700; letter-spacing: .4px; }
+
+    /* ---------- shared Brain-Out surfaces ---------- */
+    .card, .streak-widget, .quick-card, .game-square-card, .level-map-card, .lab-card, .vault-card, .login-card, .bm-bar-btn, .bm-section, .classic-card {
+      background: #FFFFFF;
+      border: 2.5px solid #1E1E1E;
+      border-radius: 16px;
+      box-shadow: 0 4px 0 #1E1E1E;
+      color: #111111;
+    }
+    .quick-card, .game-square-card, .level-map-card, .bm-bar-btn, .btn, .swipe-btn, .nav-item, .lang-pill, .gender-btn, .view-ans-btn, .chip, .bm-item {
+      cursor: pointer;
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    .quick-card:active, .game-square-card:active, .level-map-card:active, .bm-bar-btn:active, .btn:active, .swipe-btn:active,
+    .lang-pill:active, .gender-btn:active, .view-ans-btn:active, .chip:active, .bm-item:active, .hp-btn:active, .hp-ib:active, .nav-item:active .nav-ico {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #1E1E1E;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 14px; border-radius: 14px; border: 2.5px solid #1E1E1E;
+      background: #FFFDF6; color: #111; font-weight: 600; font-size: .92rem; box-shadow: 0 4px 0 #1E1E1E;
+    }
+    .btn-primary { width: 100%; background: #8EE08A; font-size: 1rem; padding: 13px; }
+    .btn-yellow { background: #FFD95A; }
+    .btn-sky { background: #CFE3FF; }
+    .btn-small { padding: 6px 10px; font-size: .78rem; border-radius: 11px; box-shadow: 0 3px 0 #1E1E1E; }
+    .tag {
+      display: inline-block; padding: 3px 10px; border-radius: 10px; border: 2px solid #1E1E1E;
+      background: #CFE3FF; color: #111; font-size: .72rem; font-weight: 600; letter-spacing: .3px;
+    }
+
+    /* ---------- floating XP ---------- */
+    #fx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 99999; overflow: hidden; }
+    .xp-float {
+      position: absolute; font-weight: 700; font-size: 1.1rem; padding: 6px 14px; border-radius: 99px;
+      border: 2.5px solid #1E1E1E; color: #111; box-shadow: 0 3px 0 #1E1E1E; animation: floatUp 1.1s ease-out forwards;
+    }
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translate(-50%, 0) scale(.8); }
+      30% { transform: translate(-50%, -25px) scale(1.1); }
+      100% { opacity: 0; transform: translate(-50%, -75px) scale(.95); }
+    }
+    @keyframes shakeErr { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+    .shake-anim { animation: shakeErr .35s ease; }
+
+    /* ---------- splash ---------- */
+    #splash-screen {
+      position: fixed; inset: 0; z-index: 99990; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background-color: #FFFDF5; background-image: linear-gradient(#EFEAD8 1px, transparent 1px), linear-gradient(90deg, #EFEAD8 1px, transparent 1px);
+      background-size: 22px 22px; transition: opacity .5s ease, visibility .5s; padding: 20px; text-align: center;
+    }
+    .atom-sketch { width: 190px; height: 190px; margin-bottom: 14px; overflow: visible; }
+    .atom-sketch .orb { fill: none; stroke: #1E1E1E; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 0; }
+    .atom-sketch .nuc { stroke: #1E1E1E; stroke-width: 2.5; }
+    .atom-sketch .el { stroke: #1E1E1E; stroke-width: 2.5; }
+    .atom-spin { transform-origin: 100px 100px; animation: atomSpin 9s linear infinite; }
+    @keyframes atomSpin { to { transform: rotate(360deg); } }
+    .splash-title {
+      font-size: 2.35rem; font-weight: 700; color: #111; letter-spacing: 1.5px; line-height: 1.05;
+      text-shadow: 3px 3px 0 #FFD95A, 4px 4px 0 #1E1E1E; margin-bottom: 10px;
+    }
+    html[lang="hi"] .splash-title { font-size: 2.6rem; }
+    .splash-sub { color: #4D493C; font-size: .86rem; letter-spacing: 1px; font-weight: 600; }
+    .splash-footer {
+      position: absolute; bottom: 28px; padding: 9px 18px; border-radius: 999px; background: #FFFDF6; color: #111;
+      border: 2.5px solid #1E1E1E; box-shadow: 0 4px 0 #1E1E1E; font-size: .92rem; font-weight: 600;
+    }
+    .splash-bar { width: 170px; height: 14px; border: 2.5px solid #1E1E1E; border-radius: 99px; background: #fff; margin-top: 16px; overflow: hidden; }
+    .splash-bar i { display: block; height: 100%; width: 0; background: #8EE08A; border-right: 2.5px solid #1E1E1E; animation: splashLoad 1.8s ease-out forwards; }
+    @keyframes splashLoad { to { width: 100%; } }
+
+    /* ---------- login ---------- */
+    #login-modal {
+      position: fixed; inset: 0; background: rgba(30, 30, 30, .6); z-index: 99980; display: none;
+      align-items: center; justify-content: center; padding: 20px; overflow-y: auto;
+    }
+    .login-card { padding: 24px 18px 20px; width: 100%; max-width: 380px; text-align: center; border-width: 3px; border-radius: 22px; box-shadow: 0 6px 0 #1E1E1E; animation: popIn .25s; }
+    @keyframes popIn { from { transform: scale(.88); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .login-card h2 { font-size: 1.6rem; line-height: 1.1; margin-bottom: 6px; }
+    .login-card p { color: #4D493C; font-size: .88rem; }
+    .input-box {
+      width: 100%; padding: 12px 14px; border-radius: 12px; border: 2.5px solid #1E1E1E; background: #FFFFFF; color: #111;
+      font-size: 1rem; margin: 12px 0; outline: none; box-shadow: 0 3px 0 #1E1E1E; user-select: text; -webkit-user-select: text;
+    }
+    .input-box:focus { background: #FFF9D6; }
+    .gender-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .gender-btn { padding: 12px; border-radius: 14px; border: 2.5px solid #1E1E1E; background: #FFFFFF; color: #111; font-weight: 600; box-shadow: 0 4px 0 #1E1E1E; font-size: .95rem; }
+    .gender-btn.active { background: #FFD95A; }
+
+    /* ---------- header ---------- */
+    .top-bar {
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 8px;
+      padding: 9px 12px; background: #FFFDF6; position: sticky; top: 0; z-index: 100; border-bottom: 2.5px solid #1E1E1E;
+    }
+    .user-pill { display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1 1 120px; }
+    .user-pill > div:last-child { min-width: 0; }
+    .avatar-circle {
+      width: 38px; height: 38px; border-radius: 12px; background: #CFE3FF; border: 2.5px solid #1E1E1E; box-shadow: 0 3px 0 #1E1E1E;
+      display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex: 0 0 auto;
+    }
+    #header-name { font-weight: 600; font-size: .98rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38vw; }
+    .header-sub { font-size: .68rem; color: #4D493C; font-weight: 600; }
+    .stats-row { display: flex; gap: 6px; align-items: center; flex: 0 0 auto; }
+    .stat-badge { padding: 5px 10px; border-radius: 999px; font-weight: 700; font-size: .82rem; display: flex; align-items: center; gap: 4px; border: 2.5px solid #1E1E1E; box-shadow: 0 3px 0 #1E1E1E; color: #111; }
+    .stat-streak { background: #FFD95A; }
+    .stat-xp { background: #CDEBCB; }
+    .lang-pill { padding: 5px 10px; border-radius: 999px; border: 2.5px solid #1E1E1E; background: #FFFFFF; color: #111; font-weight: 600; font-size: .78rem; box-shadow: 0 3px 0 #1E1E1E; white-space: nowrap; }
+
+    /* ---------- views ---------- */
+    .view-section {
+      display: none; padding: 14px 14px 20px; max-width: 900px; margin: 0 auto; color: #111111;
+      background-color: #FFFDF5; background-image: linear-gradient(#EFEAD8 1px, transparent 1px), linear-gradient(90deg, #EFEAD8 1px, transparent 1px);
+      background-size: 22px 22px; background-attachment: fixed;
+    }
+    .view-section.active { display: block; animation: fadeIn .22s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .view-title { font-size: 1.55rem; font-weight: 700; line-height: 1.1; color: #111; margin-bottom: 6px; }
+    .sec-note { font-size: .82rem; color: #4D493C; margin-bottom: 10px; font-weight: 500; }
+
+    .streak-widget { background: #FFF1A8; padding: 16px; margin-bottom: 16px; position: relative; overflow: hidden; }
+    .svg-watermark { position: absolute; right: -10px; bottom: -16px; width: 112px; height: 112px; opacity: .22; pointer-events: none; }
+    .progress-bar-bg { width: 100%; height: 14px; background: #FFFFFF; border: 2.5px solid #1E1E1E; border-radius: 99px; margin-top: 10px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: #8EE08A; border-right: 2.5px solid #1E1E1E; width: 0%; transition: width .35s ease; }
+    .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .quick-card { padding: 14px; }
+    .quick-ico { width: 46px; height: 46px; border-radius: 13px; border: 2.5px solid #1E1E1E; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin-bottom: 8px; box-shadow: 0 3px 0 #1E1E1E; }
+    .quick-card .q-t { font-weight: 600; font-size: 1rem; line-height: 1.15; }
+    .quick-card .q-s { font-size: .74rem; color: #4D493C; margin-top: 3px; }
+
+    /* ---------- flashcards ---------- */
+    .chapter-select {
+      width: 100%; padding: 11px 13px; background: #FFFFFF; color: #111; border: 2.5px solid #1E1E1E; border-radius: 14px;
+      font-size: .9rem; font-weight: 600; margin-bottom: 12px; box-shadow: 0 4px 0 #1E1E1E; appearance: auto;
+    }
+    .flashcard-stage { width: 100%; max-width: 440px; margin: 6px auto 16px; position: relative; }
+    .flashcard-box {
+      width: 100%; min-height: 395px; padding: 18px 18px 16px 30px; display: flex; flex-direction: column; justify-content: space-between;
+      background-color: #FFFFFF; background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, #EFEAD8 27px, #EFEAD8 28px);
+      background-position: 0 14px; border: 3px solid #1E1E1E; border-radius: 18px; box-shadow: 0 6px 0 #1E1E1E;
+      position: relative; overflow: hidden; touch-action: pan-y; cursor: grab; transition: transform .22s ease, box-shadow .2s;
+    }
+    .flashcard-box::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2.5px; background: #FF9B90; opacity: .9; }
+    .flashcard-box.got { box-shadow: 0 6px 0 #1E8E3E; }
+    .flashcard-box.miss { box-shadow: 0 6px 0 #D93025; }
+    .swipe-stamp {
+      position: absolute; top: 58px; padding: 5px 12px; border-radius: 8px; font-weight: 700; font-size: 1.05rem; letter-spacing: 1px;
+      opacity: 0; pointer-events: none; z-index: 20; text-transform: uppercase; background: rgba(255,255,255,.55); border: 4px double currentColor;
+    }
+    .stamp-got { right: 14px; color: #1E8E3E; transform: rotate(9deg); }
+    .stamp-miss { left: 34px; color: #D93025; transform: rotate(-9deg); }
+    .card-top-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; position: relative; z-index: 2; }
+    .card-tag { font-size: .7rem; text-transform: uppercase; letter-spacing: .6px; color: #111; font-weight: 600; background: #CFE3FF; padding: 4px 10px; border-radius: 10px; border: 2px solid #1E1E1E; }
+    .lang-toggle-btn { padding: 4px 10px; border-radius: 10px; border: 2px solid #1E1E1E; background: #FFD95A; color: #111; font-size: .72rem; font-weight: 600; cursor: pointer; box-shadow: 0 2px 0 #1E1E1E; }
+    .card-question { font-size: 1.15rem; font-weight: 600; line-height: 1.45; margin: 8px 0 12px; position: relative; z-index: 2; }
+    .card-answer-drawer { display: none; background: #EAF8E6; border: 2.5px solid #1E1E1E; border-left-width: 6px; padding: 11px 13px; border-radius: 12px; margin: 6px 0 12px; position: relative; z-index: 2; font-size: 1rem; line-height: 1.45; }
+    .formula-line { margin-top: 8px; font-weight: 600; color: #1F6FEB; }
+    .view-ans-btn { width: 100%; padding: 12px; border-radius: 14px; border: 2.5px dashed #1E1E1E; background: #FFF9D6; color: #111; font-weight: 600; box-shadow: 0 4px 0 #1E1E1E; position: relative; z-index: 2; font-size: .95rem; }
+    .swipe-controls { display: flex; gap: 12px; max-width: 440px; margin: 0 auto; }
+    .swipe-btn { flex: 1; padding: 12px 8px; border-radius: 14px; border: 2.5px solid #1E1E1E; font-weight: 600; font-size: .86rem; color: #111; box-shadow: 0 4px 0 #1E1E1E; }
+    .swipe-left { background: #FF9B90; }
+    .swipe-right { background: #8EE08A; }
+
+    /* ---------- games hub ---------- */
+    .bm-bar-btn { width: 100%; padding: 11px 12px; margin: 4px 0 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #FFF1A8; font-weight: 600; font-size: .95rem; text-align: left; }
+    .bm-count { min-width: 28px; text-align: center; padding: 2px 8px; border-radius: 99px; background: #FFFFFF; border: 2.5px solid #1E1E1E; font-size: .82rem; font-weight: 700; }
+    .games-square-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 6px; }
+    .game-square-card { min-height: 158px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; padding: 0; }
+    .gs-strip { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 2.5px solid #1E1E1E; }
+    .gs-ico { font-size: 1.7rem; line-height: 1; }
+    .gs-badge { font-size: .64rem; font-weight: 700; padding: 3px 8px; border-radius: 99px; background: #FFFFFF; border: 2px solid #1E1E1E; color: #111; }
+    .gs-body { padding: 8px 10px 4px; flex: 1; }
+    .gs-title { font-weight: 600; font-size: .98rem; line-height: 1.15; color: #111; }
+    .gs-sub { font-size: .7rem; color: #4D493C; margin-top: 3px; line-height: 1.25; }
+    .gs-foot { font-size: .68rem; font-weight: 600; color: #111; padding: 6px 10px 9px; }
+    .play-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .level-map-grid { display: grid; gap: 12px; margin-top: 12px; }
+    .level-map-card { padding: 13px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .level-map-card.locked { opacity: .5; cursor: not-allowed; background: #F1ECDD; }
+    .lm-title { font-weight: 600; font-size: 1rem; line-height: 1.2; }
+    .lm-stats { font-size: .74rem; color: #111; margin-top: 4px; font-weight: 500; line-height: 1.5; }
+    .lm-q { display: inline-block; padding: 1px 8px; border-radius: 8px; border: 2px solid #1E1E1E; background: #FFFDF6; font-weight: 700; font-size: .72rem; margin-left: 4px; }
+    .lm-go { padding: 8px 14px; border-radius: 12px; border: 2.5px solid #1E1E1E; font-weight: 700; font-size: .85rem; color: #111; box-shadow: 0 3px 0 #1E1E1E; white-space: nowrap; background: #FFFFFF; }
+    .bm-section { margin-top: 18px; padding: 13px 13px 14px; }
+    .bm-section h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .chip { padding: 5px 12px; border-radius: 12px; border: 2.5px solid #1E1E1E; background: #FFFDF6; font-size: .78rem; font-weight: 600; color: #111; box-shadow: 0 3px 0 #1E1E1E; }
+    .chip.on { background: #8EE08A; }
+    .bm-list { display: flex; flex-direction: column; gap: 8px; }
+    .bm-item { text-align: left; padding: 9px 11px; border-radius: 14px; border: 2.5px solid #1E1E1E; background: #FFFDF6; color: #111; box-shadow: 0 3px 0 #1E1E1E; font-size: .84rem; line-height: 1.35; display: block; width: 100%; }
+    .bm-empty { padding: 10px 12px; border: 2px dashed #1E1E1E; border-radius: 12px; font-size: .82rem; color: #4D493C; background: #FFFDF6; }
+    .m-easy { background: #8EE08A; } .m-moderate { background: #FFD95A; } .m-hard { background: #FF9B90; }
+    .mode-dot { display: inline-block; padding: 1px 8px; border-radius: 8px; border: 2px solid #1E1E1E; font-size: .68rem; font-weight: 700; margin-right: 4px; }
+
+    /* ---------- classic top bar ---------- */
+    .classic-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .classic-bar .sp { flex: 1 1 auto; }
+    .hp-i { width: 40px; height: 40px; border-radius: 50%; background: #388BFD; color: #FFFFFF; border: 2.5px solid #1E1E1E; box-shadow: 0 3px 0 #1E1E1E; font: 700 22px/1 Georgia, 'Times New Roman', serif; font-style: italic; cursor: pointer; flex: 0 0 auto; }
+    .hp-i:active { transform: translateY(3px); box-shadow: 0 0 0 #1E1E1E; }
+    .hp-ib { width: 40px; height: 40px; padding: 0; border-radius: 12px; border: 2.5px solid #1E1E1E; background: #FFFDF6; box-shadow: 0 4px 0 #1E1E1E; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+    .hp-ib.used { background: #FFE98A; }
+    .hp-badge { padding: 2px 10px; border-radius: 10px; border: 2.5px solid #1E1E1E; box-shadow: 0 2px 0 #1E1E1E; font-size: .72rem; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: #111; }
+    .hp-qn { font-weight: 600; font-size: 1rem; }
+    .combo-pill { background: #FFD95A; color: #111; font-weight: 700; font-size: .75rem; padding: 4px 10px; border-radius: 99px; border: 2.5px solid #1E1E1E; box-shadow: 0 2px 0 #1E1E1E; }
+    .timer-clock { font-family: var(--font-en); font-size: .95rem; font-weight: 700; color: #111; background: #FFFFFF; padding: 3px 10px; border-radius: 10px; border: 2.5px solid #1E1E1E; box-shadow: 0 2px 0 #1E1E1E; }
+    .classic-card { padding: 14px; }
+    .target-badge { display: inline-block; padding: 7px 14px; border-radius: 14px; background: #FFF1A8; color: #111; border: 2.5px solid #1E1E1E; box-shadow: 0 4px 0 #1E1E1E; font-weight: 600; font-size: 1.05rem; margin-bottom: 8px; }
+
+    /* ---------- periodic table ---------- */
+    .pt-scroll-wrapper { width: 100%; overflow-x: auto; background: #FDF9EE; border: 2.5px solid #1E1E1E; border-radius: 14px; padding: 8px 6px; margin-top: 10px; box-shadow: 0 4px 0 #1E1E1E; }
+    .pt-grid { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); grid-auto-rows: 32px; gap: 2px; width: 100%; }
+    .pt-grid.zoomed { grid-template-columns: repeat(18, 42px); grid-auto-rows: 46px; gap: 4px; min-width: 810px; }
+    .pt-slot { border-radius: 5px; border: 1.5px dashed rgba(30,30,30,.4); background: rgba(255,255,255,.55); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: .55rem; color: #4D493C; font-weight: 600; }
+    .pt-slot.target-slot { border: 2px dashed #1E1E1E; background: #FFFFFF; color: #111; font-weight: 700; cursor: pointer; }
+    .pt-slot.dimmed-slot { opacity: .4; border-style: solid; border-width: 1.5px; background: #EFEAD8; }
+    .pt-slot.filled-slot { border: 2px solid #1E1E1E; color: #111; font-weight: 700; }
+    .block-s { background: #CFE3FF; } .block-p { background: #CDEBCB; } .block-d { background: #F8D9B8; } .block-f { background: #E5D4FF; }
+    .elem-tile { width: 62px; height: 66px; border-radius: 12px; padding: 4px 5px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; border: 2px solid #1E1E1E; box-shadow: 0 3px 0 #1E1E1E; flex-shrink: 0; color: #111; }
+    .elem-tile.selected-tile { transform: translateY(-4px) scale(1.06); outline: 3px solid #388BFD; box-shadow: 0 6px 0 #1E1E1E; }
+    .tile-z { font-size: .62rem; font-weight: 700; text-align: left; }
+    .tile-sym { font-size: 1.18rem; font-weight: 700; text-align: center; line-height: 1; }
+    .tile-mass { font-size: .54rem; text-align: center; font-weight: 600; }
+    .tile-tray { display: flex; gap: 9px; overflow-x: auto; padding: 10px 10px 14px; background: #FFFFFF; border-radius: 14px; border: 2.5px solid #1E1E1E; box-shadow: 0 4px 0 #1E1E1E; min-height: 92px; align-items: center; }
+    .pt-legend { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .pt-legend span { padding: 2px 9px; border-radius: 8px; border: 2px solid #1E1E1E; font-size: .7rem; font-weight: 700; }
+
+    /* ---------- aufbau ---------- */
+    .orbital-container { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; }
+    .subshell-card { background: #FDF9EE; border: 2.5px solid #1E1E1E; border-radius: 12px; padding: 8px 10px; box-shadow: 0 3px 0 #1E1E1E; }
+    .orb-boxes-row { display: flex; gap: 5px; margin-top: 6px; }
+    .orb-box { width: 36px; height: 40px; border-radius: 8px; border: 2.5px solid #1E1E1E; background: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; color: #1F6FEB; cursor: pointer; box-shadow: 0 3px 0 #1E1E1E; }
+    .orb-box:active { transform: translateY(3px); box-shadow: 0 0 0 #1E1E1E; }
+
+    /* ---------- lab ---------- */
+    .lab-card { padding: 14px; margin-top: 8px; }
+    #gas-canvas { width: 100%; height: 240px; background: #FDF9EE; border-radius: 14px; border: 2.5px solid #1E1E1E; box-shadow: 0 4px 0 #1E1E1E; touch-action: none; display: block; }
+    input[type=range] { width: 100%; accent-color: #388BFD; height: 24px; }
+    .readout { font-size: .78rem; font-weight: 600; color: #1E8E3E; background: #FFFFFF; border: 2px solid #1E1E1E; border-radius: 10px; padding: 2px 8px; }
+    .calc-out { margin-top: 10px; font-weight: 600; font-size: .95rem; background: #EAF8E6; border: 2.5px solid #1E1E1E; border-radius: 12px; padding: 9px 11px; line-height: 1.45; }
+
+    /* ---------- vault ---------- */
+    .vault-card { padding: 14px; }
+    .vault-formula { margin-top: 8px; padding: 8px 10px; background: #FDF9EE; border: 2px dashed #1E1E1E; border-radius: 12px; font-size: .95rem; overflow-x: auto; color: #111; }
+    .vault-title { font-weight: 700; font-size: 1.1rem; line-height: 1.2; margin-top: 4px; }
+
+    /* ---------- bottom nav ---------- */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: #FFFDF6; border-top: 2.5px solid #1E1E1E; display: flex; justify-content: space-around; padding: 7px 2px 10px; z-index: 500; }
+    .nav-item { background: none; border: none; color: #4D493C; font-size: .7rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+    .nav-ico { width: 40px; height: 30px; border-radius: 10px; border: 2.5px solid transparent; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .nav-item.active { color: #111; }
+    .nav-item.active .nav-ico { background: #FFD95A; border-color: #1E1E1E; box-shadow: 0 3px 0 #1E1E1E; }
+
+    /* ---------- host popups (Brain-Out curved square white) ---------- */
+    .hp-ov { position: fixed; inset: 0; z-index: 99970; background: rgba(30,30,30,.55); display: flex; align-items: center; justify-content: center; padding: 14px; overflow-y: auto; animation: fadeIn .2s; }
+    .hp-pop { position: relative; width: min(100%, 420px); max-height: 88vh; overflow-y: auto; background: #FFFFFF; color: #111111; border: 3px solid #1E1E1E; border-radius: 22px; box-shadow: 0 6px 0 #1E1E1E; padding: 12px 14px 14px; animation: popIn .22s; }
+    .hp-top { display: flex; align-items: center; gap: 8px; min-height: 40px; margin-bottom: 6px; }
+    .hp-title { flex: 1; font-weight: 700; font-size: 1.15rem; }
+    .hp-lock { padding: 4px 10px; border-radius: 999px; background: #FFF1A8; border: 2.5px solid #1E1E1E; font-weight: 700; font-size: .85rem; min-width: 46px; text-align: center; }
+    .hp-x { width: 38px; height: 38px; border-radius: 50%; background: #E5322D; color: #FFFFFF; border: 2.5px solid #1E1E1E; box-shadow: 0 3px 0 #1E1E1E; font-size: 17px; font-weight: 700; cursor: pointer; flex: 0 0 auto; }
+    .hp-x:active { transform: translateY(3px); box-shadow: 0 0 0 #1E1E1E; }
+    .hp-x[hidden], .hp-lock[hidden] { display: none; }
+    .hp-txt { font-size: 1rem; line-height: 1.55; }
+    .hp-note { margin-top: 10px; padding: 8px 10px; border-radius: 12px; background: #FFFDF6; border: 2px dashed #1E1E1E; font-size: .82rem; color: #4D493C; }
+    .hp-tag { display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 10px; background: #FFFDF6; border: 2px solid #1E1E1E; font-weight: 600; font-size: .78rem; }
+    .hp-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .hp-btn { padding: 10px; border-radius: 14px; border: 2.5px solid #1E1E1E; background: #FFFDF6; color: #111; font-weight: 600; box-shadow: 0 4px 0 #1E1E1E; cursor: pointer; font-size: .95rem; }
+    .hp-btn.green { background: #8EE08A; }
+    #toast { position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%) translateY(20px); background: #FFFFFF; border: 2.5px solid #1E1E1E; border-radius: 14px; box-shadow: 0 4px 0 #1E1E1E; padding: 9px 16px; font-weight: 600; z-index: 99995; opacity: 0; pointer-events: none; transition: all .25s; font-size: .9rem; max-width: 86vw; text-align: center; }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .katex { font-size: 1.04em; }
+    .nav-item span:last-child { font-size: .62rem; white-space: nowrap; }
+    .gs-foot { font-size: .62rem; white-space: nowrap; }
+    .game-square-card .gs-foot { padding-left: 8px; padding-right: 6px; }
+  </style>
+</head>
+<body>
+
+  <!-- FLOATING XP LAYER + TOAST -->
+  <div id="fx-layer"></div>
+  <div id="toast"></div>
+
+  <!-- 1. SPLASH SCREEN -->
+  <div id="splash-screen">
+    <svg class="atom-sketch" viewBox="0 0 200 200" aria-hidden="true">
+      <g class="atom-spin">
+        <g>
+          <ellipse class="orb" cx="100" cy="100" rx="88" ry="32"/>
+          <circle class="el" r="8" fill="#FF9B90"><animateMotion dur="2.4s" repeatCount="indefinite" path="M12,100 a88,32 0 1,0 176,0 a88,32 0 1,0 -176,0"/></circle>
+        </g>
+        <g transform="rotate(60 100 100)">
+          <ellipse class="orb" cx="100" cy="100" rx="88" ry="32"/>
+          <circle class="el" r="8" fill="#8EE08A"><animateMotion dur="2.9s" repeatCount="indefinite" path="M12,100 a88,32 0 1,0 176,0 a88,32 0 1,0 -176,0"/></circle>
+        </g>
+        <g transform="rotate(120 100 100)">
+          <ellipse class="orb" cx="100" cy="100" rx="88" ry="32"/>
+          <circle class="el" r="8" fill="#CFE3FF"><animateMotion dur="3.3s" repeatCount="indefinite" path="M12,100 a88,32 0 1,0 176,0 a88,32 0 1,0 -176,0"/></circle>
+        </g>
+      </g>
+      <circle class="nuc" cx="93" cy="96" r="11" fill="#FF9B90"/>
+      <circle class="nuc" cx="108" cy="95" r="11" fill="#CFE3FF"/>
+      <circle class="nuc" cx="100" cy="109" r="11" fill="#FFD95A"/>
+      <circle class="nuc" cx="101" cy="92" r="9" fill="#FF9B90"/>
+    </svg>
+    <div class="splash-title">CHEMISTRY EXPLORER</div>
+    <div class="splash-sub"><span class="bi" data-en="CLASS 11 NCERT • JEE INTERACTIVE SUITE" data-hi="कक्षा 11 NCERT • JEE इंटरैक्टिव सूट">CLASS 11 NCERT • JEE INTERACTIVE SUITE</span></div>
+    <div class="splash-bar"><i></i></div>
+    <div class="splash-footer">Made with ❤️‍🩹 by Aditya Maurya</div>
+  </div>
+
+  <!-- 2. LOGIN MODAL -->
+  <div id="login-modal">
+    <div class="login-card">
+      <h2 class="hindi-bold"><span class="bi" data-en="WELCOME JEE ASPIRANT!" data-hi="स्वागत है JEE अभ्यर्थी!">WELCOME JEE ASPIRANT!</span></h2>
+      <p><span class="bi" data-en="Enter your Name &amp; Gender to save your Streak" data-hi="अपनी स्ट्रीक सहेजने के लिए नाम और लिंग चुनें">Enter your Name & Gender to save your Streak</span></p>
+      <input type="text" id="user-name-input" class="input-box" data-en="Your Name (e.g. Aditya Maurya)" data-hi="आपका नाम (जैसे आदित्य मौर्य)" placeholder="Your Name (e.g. Aditya Maurya)" maxlength="24" />
+      <div class="gender-grid">
+        <button type="button" class="gender-btn active" id="gen-male" onclick="selectGender('male')">👨‍🎓 <span class="bi" data-en="Male" data-hi="पुरुष">Male</span></button>
+        <button type="button" class="gender-btn" id="gen-female" onclick="selectGender('female')">👩‍🎓 <span class="bi" data-en="Female" data-hi="महिला">Female</span></button>
+      </div>
+      <button class="btn btn-primary" onclick="completeLogin()">🚀 <span class="bi" data-en="Start Exploring" data-hi="खोज शुरू करें">Start Exploring</span></button>
+    </div>
+  </div>
+
+  <!-- 3. TOP BAR -->
+  <header class="top-bar">
+    <div class="user-pill">
+      <div class="avatar-circle" id="header-avatar">👨‍🎓</div>
+      <div>
+        <div id="header-name">Aspirant</div>
+        <div class="header-sub"><span class="bi" data-en="Class 11 • JEE Target" data-hi="कक्षा 11 • JEE लक्ष्य">Class 11 • JEE Target</span></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <button class="lang-pill" id="lang-btn" onclick="toggleAppLanguage()">🌐 हिंदी / EN</button>
+      <div class="stat-badge stat-streak">🔥 <span id="streak-count">1</span>d</div>
+      <div class="stat-badge stat-xp">⚡ <span id="xp-count">0</span> XP</div>
+    </div>
+  </header>
+
+  <!-- 4. HOME VIEW -->
+  <section id="view-home" class="view-section active">
+    <div class="streak-widget">
+      <svg class="svg-watermark" viewBox="0 0 100 100" fill="none">
+        <polygon points="50,6 90,28 90,72 50,94 10,72 10,28" stroke="#1E1E1E" stroke-width="4"/>
+        <circle cx="50" cy="50" r="24" stroke="#1E1E1E" stroke-width="3" stroke-dasharray="6 5"/>
+      </svg>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; position:relative;">
+        <div>
+          <span class="tag" style="background:#FFD95A;"><span class="bi" data-en="Daily Target (+100 Bonus XP!)" data-hi="दैनिक लक्ष्य (+100 बोनस XP!)">Daily Target (+100 Bonus XP!)</span></span>
+          <h3 class="hindi-bold" style="font-size:1.45rem; margin-top:6px; line-height:1.15;"><span class="bi" data-en="Complete today's 10 NCERT Flashcards!" data-hi="आज के 10 NCERT फ्लैशकार्ड पूरे करें!">Complete today's 10 NCERT Flashcards!</span></h3>
+        </div>
+        <div style="font-size:2rem;">🎯</div>
+      </div>
+      <p style="font-size:.82rem; color:#111; margin-top:8px; position:relative;">
+        <span class="bi" data-en="Progress:" data-hi="प्रगति:">Progress:</span> <strong id="daily-cards-done">0</strong> / 10 <span class="bi" data-en="Cards (Right: +10/+5 XP | Wrong: -3 XP | 10/10 Bonus: +100 XP)" data-hi="कार्ड (सही: +10/+5 XP | गलत: -3 XP | 10/10 बोनस: +100 XP)">Cards (Right: +10/+5 XP | Wrong: -3 XP | 10/10 Bonus: +100 XP)</span>
+      </p>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="daily-progress-fill"></div></div>
+    </div>
+
+    <div class="quick-grid">
+      <div class="quick-card" onclick="switchTab('flashcards')">
+        <div class="quick-ico" style="background:#CFE3FF;">🃏</div>
+        <div class="q-t"><span class="bi" data-en="Touch-Swipe Cards" data-hi="टच-स्वाइप कार्ड">Touch-Swipe Cards</span></div>
+        <div class="q-s"><span class="bi" data-en="Hold &amp; Drag Left/Right" data-hi="पकड़कर बाएँ/दाएँ खींचें">Hold & Drag Left/Right</span></div>
+      </div>
+      <div class="quick-card" onclick="switchTab('games')">
+        <div class="quick-ico" style="background:#8EE08A;">🎮</div>
+        <div class="q-t"><span class="bi" data-en="9 JEE Concept Games" data-hi="9 JEE कॉन्सेप्ट गेम">9 JEE Concept Games</span></div>
+        <div class="q-s"><span class="bi" data-en="2 Classic + 7 New Labs" data-hi="2 क्लासिक + 7 नई लैब">2 Classic + 7 New Labs</span></div>
+      </div>
+      <div class="quick-card" onclick="switchTab('lab')">
+        <div class="quick-ico" style="background:#FFD95A;">📈</div>
+        <div class="q-t"><span class="bi" data-en="HD Graph &amp; Lab" data-hi="HD ग्राफ़ व लैब">HD Graph & Lab</span></div>
+        <div class="q-s"><span class="bi" data-en="Touch Crosshair + 4 Graphs" data-hi="टच क्रॉसहेयर + 4 ग्राफ़">Touch Crosshair + 4 Graphs</span></div>
+      </div>
+      <div class="quick-card" onclick="switchTab('library')">
+        <div class="quick-ico" style="background:#E5D4FF;">📚</div>
+        <div class="q-t"><span class="bi" data-en="Chapter Formula Vault" data-hi="अध्याय सूत्र वॉल्ट">Chapter Formula Vault</span></div>
+        <div class="q-s"><span class="bi" data-en="Topic-wise NCERT Listing" data-hi="विषयवार NCERT सूची">Topic-wise NCERT Listing</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. FLASHCARDS VIEW -->
+  <section id="view-flashcards" class="view-section">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px;">
+      <h2 class="view-title"><span class="bi" data-en="SWIPE NCERT FLASHCARDS" data-hi="NCERT फ्लैशकार्ड स्वाइप करें">SWIPE NCERT FLASHCARDS</span></h2>
+      <span id="deck-counter" class="tag" style="background:#FFD95A; white-space:nowrap;">Card 1/5</span>
+    </div>
+
+    <select id="chapter-selector" class="chapter-select" onchange="loadFlashcardDeck()">
+      <option value="ch1" data-en="Ch 1: Some Basic Concepts of Chemistry" data-hi="अध्याय 1: रसायन विज्ञान की कुछ मूल अवधारणाएँ">Ch 1: Some Basic Concepts of Chemistry</option>
+      <option value="ch2" data-en="Ch 2: Structure of Atom" data-hi="अध्याय 2: परमाणु की संरचना">Ch 2: Structure of Atom</option>
+      <option value="ch3" data-en="Ch 3: Classification of Elements" data-hi="अध्याय 3: तत्वों का वर्गीकरण">Ch 3: Classification of Elements</option>
+      <option value="ch4" data-en="Ch 4: Chemical Bonding" data-hi="अध्याय 4: रासायनिक आबंधन">Ch 4: Chemical Bonding</option>
+      <option value="ch5" data-en="Ch 5: Thermodynamics &amp; Equilibrium" data-hi="अध्याय 5: ऊष्मागतिकी व साम्य">Ch 5: Thermodynamics &amp; Equilibrium</option>
+      <option value="ch6" data-en="Ch 6: Redox &amp; GOC Organic" data-hi="अध्याय 6: रेडॉक्स व GOC कार्बनिक">Ch 6: Redox &amp; GOC Organic</option>
+    </select>
+
+    <p class="sec-note" style="text-align:center;">
+      👆 <span class="bi" data-en="Hold &amp; Drag the card Right (Got It) or Left (Missed -3 XP)" data-hi="कार्ड को पकड़कर दाएँ (सही) या बाएँ (चूका -3 XP) खींचें">Hold & Drag the card Right (Got It) or Left (Missed -3 XP)</span>
+    </p>
+
+    <div class="flashcard-stage">
+      <div class="flashcard-box" id="active-flashcard">
+        <div class="swipe-stamp stamp-got" id="stamp-right"><span class="bi" data-en="GOT IT! +10 XP" data-hi="सही! +10 XP">GOT IT! +10 XP</span></div>
+        <div class="swipe-stamp stamp-miss" id="stamp-left"><span class="bi" data-en="MISSED -3 XP" data-hi="चूका -3 XP">MISSED -3 XP</span></div>
+
+        <div>
+          <div class="card-top-row">
+            <span class="card-tag" id="fc-topic">NCERT CORE</span>
+            <button class="lang-toggle-btn" id="fc-lang-btn" onclick="toggleAppLanguage()">🌐</button>
+          </div>
+          <div class="card-question" id="fc-question">Loading...</div>
+          <div class="card-answer-drawer" id="fc-answer-box">
+            <div id="fc-ans-text"></div>
+            <div class="formula-line" id="fc-formula"></div>
+          </div>
+        </div>
+
+        <button class="view-ans-btn" id="fc-reveal-btn" onclick="revealFlashcardAnswer()">
+          👁️ <span class="bi" data-en="View Answer" data-hi="उत्तर देखें">View Answer</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="swipe-controls">
+      <button class="swipe-btn swipe-left" onclick="handleCardSwipe(false)">⬅️ <span class="bi" data-en="Missed (-3 XP)" data-hi="चूका (-3 XP)">Missed (-3 XP)</span></button>
+      <button class="swipe-btn swipe-right" id="fc-right-btn" onclick="handleCardSwipe(true)">Got It! (+10 XP) ➡️</button>
+    </div>
+  </section>
+
+  <!-- 6. GAMES HUB (2 CLASSIC + 7 NEW = 9 GAMES) -->
+  <section id="view-games" class="view-section">
+
+    <!-- STAGE A: SQUARE GAMES GRID -->
+    <div id="games-hub-screen">
+      <h2 class="view-title"><span class="bi" data-en="9 JEE CONCEPT GAMES" data-hi="9 JEE कॉन्सेप्ट गेम">9 JEE CONCEPT GAMES</span></h2>
+      <p class="sec-note"><span class="bi" data-en="Tap any game square to view Levels / Difficulty Modes &amp; your play stats:" data-hi="स्तर / कठिनाई मोड और अपने आँकड़े देखने के लिए किसी गेम पर टैप करें:">Tap any game square to view Levels / Difficulty Modes & your play stats:</span></p>
+      <button class="bm-bar-btn" id="hub-bm-btn" onclick="openHubBookmarks()">
+        <span>🔖 <span class="bi" data-en="Bookmarked Questions" data-hi="बुकमार्क प्रश्न">Bookmarked Questions</span> <span class="muted" style="font-weight:500;">(<span class="bi" data-en="All games" data-hi="सभी गेम">All games</span>)</span></span>
+        <span class="bm-count" id="hub-bm-count">0</span>
+      </button>
+      <div class="games-square-grid" id="games-square-container"></div>
+    </div>
+
+    <!-- STAGE B: LEVEL / DIFFICULTY SELECTION MAP -->
+    <div id="games-level-screen" style="display:none;">
+      <div class="play-top">
+        <button class="btn btn-small" onclick="backToGamesHub()">⬅️ <span class="bi" data-en="All 9 Games" data-hi="सभी 9 गेम">All 9 Games</span></button>
+        <h3 class="view-title" id="lvl-map-title" style="margin:0; font-size:1.3rem;">Select Mode</h3>
+      </div>
+      <div class="level-map-grid" id="level-map-list"></div>
+      <div class="bm-section" id="level-bm-section" style="display:none;"></div>
+    </div>
+
+    <!-- STAGE C: ACTIVE GAMEPLAY ARENA -->
+    <div id="games-play-screen" style="display:none;">
+      <div class="play-top">
+        <button class="btn btn-small" onclick="openLevelMap(activeGameId)">⬅️ <span class="bi" data-en="Modes / Levels" data-hi="मोड / स्तर">Modes / Levels</span></button>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div class="timer-clock" id="game-timer-display">⏱ 00:00</div>
+          <div class="combo-pill" id="combo-badge">🔥 1x Streak</div>
+        </div>
+      </div>
+
+      <!-- Brain-Out top bar for the two classic games -->
+      <div class="classic-bar" id="classic-bar" style="display:none;">
+        <button class="hp-i" id="info-btn" aria-label="Info">i</button>
+        <span class="hp-badge m-easy" id="classic-badge">Easy</span>
+        <span class="hp-qn" id="classic-qn">(Lvl 1)</span>
+        <span class="sp"></span>
+        <button class="hp-ib" id="hint-btn" aria-label="Hint"></button>
+      </div>
+
+      <!-- Classic Arena 1: Periodic Table Drag & Drop -->
+      <div id="arena-pt" style="display:none;">
+        <div class="target-badge" id="pt-target">Place</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:6px;">
+          <span class="tag" style="background:#CDEBCB;"><span class="bi" data-en="Placed" data-hi="रखे गए">Placed</span>: <strong id="pt-placed-count">0/0</strong></span>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-small btn-sky" onclick="togglePtZoom()" id="pt-zoom-btn">🔍 Fit Screen</button>
+            <button class="btn btn-small btn-yellow" onclick="shufflePeriodicTray()">🔀 <span class="bi" data-en="Shuffle" data-hi="मिलाएँ">Shuffle</span></button>
+          </div>
+        </div>
+        <div class="tile-tray" id="pt-tile-tray"></div>
+        <div class="pt-scroll-wrapper"><div class="pt-grid" id="pt-grid-board"></div></div>
+        <div class="pt-legend">
+          <span class="block-s">s-block</span><span class="block-p">p-block</span><span class="block-d">d-block</span><span class="block-f">f-block</span>
+        </div>
+      </div>
+
+      <!-- Classic Arena 2: Aufbau Orbital Filler -->
+      <div id="arena-aufbau" style="display:none;">
+        <div class="classic-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span class="card-tag" id="auf-target-badge">Level</span>
+            <span style="font-size:.78rem; color:#4D493C; font-weight:600;" id="auf-random-streak">Tap box: Empty → ↑ → ↑↓</span>
+          </div>
+          <div class="target-badge" id="auf-prompt" style="margin-top:10px;"></div>
+          <p style="color:#4D493C; margin-top:2px; font-size:.9rem;" id="auf-hint"></p>
+          <div class="orbital-container" id="auf-boxes-area"></div>
+          <button class="btn btn-primary" onclick="verifyAufbauConfig()">🔒 <span class="bi" data-en="Lock Orbital Configuration" data-hi="कक्षक विन्यास लॉक करें">Lock Orbital Configuration</span></button>
+        </div>
+      </div>
+
+      <!-- Engine Arena (7 games mounted by games-engine.js) -->
+      <div id="arena-new-engine" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- 7. HD INTERACTIVE LAB & GRAPH VISUALIZER -->
+  <section id="view-lab" class="view-section">
+    <h2 class="view-title"><span class="bi" data-en="HD GRAPH VISUALIZER &amp; LAB" data-hi="HD ग्राफ़ विज़ुअलाइज़र व लैब">HD GRAPH VISUALIZER & LAB</span></h2>
+
+    <div class="lab-card">
+      <select id="graph-mode-select" class="chapter-select" onchange="drawLabGraph()">
+        <option value="boyle" data-en="1. Boyle's Law Isotherm (P vs V with 300K Reference)" data-hi="1. बॉयल का नियम समतापी वक्र (P बनाम V, 300K संदर्भ)">1. Boyle's Law Isotherm (P vs V with 300K Reference)</option>
+        <option value="maxwell" data-en="2. Maxwell-Boltzmann Speed Curve (u_mp, u_avg, u_rms)" data-hi="2. मैक्सवेल-बोल्ट्ज़मान गति वक्र (u_mp, u_avg, u_rms)">2. Maxwell-Boltzmann Speed Curve (u_mp, u_avg, u_rms)</option>
+        <option value="radial" data-en="3. Radial Probability Density 4πr²R² (2s Node)" data-hi="3. त्रिज्य प्रायिकता घनत्व 4πr²R² (2s नोड)">3. Radial Probability Density 4πr²R² (2s Node)</option>
+        <option value="arrhenius" data-en="4. Kinetics Energy Profile (Uncatalyzed vs Catalyzed Ea)" data-hi="4. बलगतिकी ऊर्जा प्रोफ़ाइल (उत्प्रेरित बनाम अनुत्प्रेरित Ea)">4. Kinetics Energy Profile (Uncatalyzed vs Catalyzed Ea)</option>
+      </select>
+
+      <p id="graph-desc-hindi" style="line-height:1.5; font-size:.92rem;"></p>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; margin:10px 0 6px; gap:8px; flex-wrap:wrap;">
+        <label style="font-size:.85rem; font-weight:600;"><span class="bi" data-en="Control" data-hi="नियंत्रण">Control</span> (<span id="param-label">Temperature T</span>): <span id="temp-val" style="color:#1F6FEB;">350 K</span></label>
+        <span class="readout" id="graph-readout">Touch graph to inspect</span>
+      </div>
+      <input type="range" id="temp-slider" min="200" max="600" value="350" style="margin-bottom:10px;" oninput="drawLabGraph()" />
+
+      <canvas id="gas-canvas"></canvas>
+    </div>
+
+    <div class="lab-card" style="margin-top:16px;">
+      <h3 style="font-size:1.2rem; font-weight:700;">🧪 <span class="bi" data-en="Live Molarity, Normality &amp; pH Lab" data-hi="लाइव मोलरता, नॉर्मलता व pH लैब">Live Molarity, Normality & pH Lab</span></h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:6px;">
+        <div>
+          <label style="font-size:.74rem; color:#4D493C; font-weight:600;"><span class="bi" data-en="Solute Moles (n):" data-hi="विलेय मोल (n):">Solute Moles (n):</span></label>
+          <input type="number" id="calc-moles" class="input-box" value="0.2" step="0.05" min="0" style="margin:4px 0; padding:9px;" oninput="runChemCalc()" />
+        </div>
+        <div>
+          <label style="font-size:.74rem; color:#4D493C; font-weight:600;"><span class="bi" data-en="Volume in Litres (V):" data-hi="आयतन लीटर में (V):">Volume in Litres (V):</span></label>
+          <input type="number" id="calc-vol" class="input-box" value="2.0" step="0.1" min="0.01" style="margin:4px 0; padding:9px;" oninput="runChemCalc()" />
+        </div>
+        <div>
+          <label style="font-size:.74rem; color:#4D493C; font-weight:600;"><span class="bi" data-en="n-factor:" data-hi="n-गुणांक:">n-factor:</span></label>
+          <input type="number" id="calc-nf" class="input-box" value="1" step="1" min="1" style="margin:4px 0; padding:9px;" oninput="runChemCalc()" />
+        </div>
+      </div>
+      <div id="calc-output" class="calc-out"></div>
+    </div>
+  </section>
+
+  <!-- 8. CHAPTER-WISE & TOPIC-WISE NCERT VAULT -->
+  <section id="view-library" class="view-section">
+    <h2 class="view-title"><span class="bi" data-en="CHAPTER-WISE NCERT &amp; JEE VAULT" data-hi="अध्यायवार NCERT व JEE वॉल्ट">CHAPTER-WISE NCERT & JEE VAULT</span></h2>
+
+    <select id="vault-chapter-select" class="chapter-select" onchange="renderVaultList()">
+      <option value="all" data-en="📚 All Class 11 Chapters (Complete Important Listing)" data-hi="📚 कक्षा 11 के सभी अध्याय (पूर्ण महत्वपूर्ण सूची)">📚 All Class 11 Chapters (Complete Important Listing)</option>
+      <option value="ch1" data-en="Ch 1: Some Basic Concepts &amp; Stoichiometry" data-hi="अध्याय 1: मूल अवधारणाएँ व रससमीकरणमिति">Ch 1: Some Basic Concepts &amp; Stoichiometry</option>
+      <option value="ch2" data-en="Ch 2: Structure of Atom &amp; Quantum Mechanics" data-hi="अध्याय 2: परमाणु संरचना व क्वांटम यांत्रिकी">Ch 2: Structure of Atom &amp; Quantum Mechanics</option>
+      <option value="ch3" data-en="Ch 3: Periodic Table &amp; NCERT Exceptions" data-hi="अध्याय 3: आवर्त सारणी व NCERT अपवाद">Ch 3: Periodic Table &amp; NCERT Exceptions</option>
+      <option value="ch4" data-en="Ch 4: Chemical Bonding, VSEPR &amp; MOT" data-hi="अध्याय 4: रासायनिक आबंधन, VSEPR व MOT">Ch 4: Chemical Bonding, VSEPR &amp; MOT</option>
+      <option value="ch5" data-en="Ch 5: Thermodynamics &amp; Chemical Equilibrium" data-hi="अध्याय 5: ऊष्मागतिकी व रासायनिक साम्य">Ch 5: Thermodynamics &amp; Chemical Equilibrium</option>
+      <option value="ch6" data-en="Ch 6: Redox Reactions &amp; GOC Isomerism" data-hi="अध्याय 6: रेडॉक्स अभिक्रियाएँ व GOC समावयवता">Ch 6: Redox Reactions &amp; GOC Isomerism</option>
+    </select>
+
+    <div id="vault-cards-container" style="display:grid; gap:14px; margin-top:8px;"></div>
+  </section>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="home" onclick="switchTab('home', this)"><span class="nav-ico">🏠</span><span><span class="bi" data-en="Home" data-hi="होम">Home</span></span></button>
+    <button class="nav-item" data-tab="flashcards" onclick="switchTab('flashcards', this)"><span class="nav-ico">🃏</span><span><span class="bi" data-en="Flashcards" data-hi="फ्लैशकार्ड">Flashcards</span></span></button>
+    <button class="nav-item" data-tab="games" onclick="switchTab('games', this)"><span class="nav-ico">🎮</span><span><span class="bi" data-en="Games" data-hi="गेम">Games</span></span></button>
+    <button class="nav-item" data-tab="lab" onclick="switchTab('lab', this)"><span class="nav-ico">📈</span><span><span class="bi" data-en="Lab &amp; Graph" data-hi="लैब व ग्राफ़">Lab & Graph</span></span></button>
+    <button class="nav-item" data-tab="library" onclick="switchTab('library', this)"><span class="nav-ico">📚</span><span><span class="bi" data-en="NCERT Vault" data-hi="NCERT वॉल्ट">NCERT Vault</span></span></button>
+  </nav>
+
+  <!-- LOAD EXTERNAL 7-GAMES ENGINE FIRST -->
+  <script src="games-engine.js"></script>
+
+  <script>
+    /* =========================================================================
+       1. GLOBAL HELPERS: LANGUAGE, AUDIO, XP, KATEX (shared with games-engine.js)
+       ========================================================================= */
+    const $ = (id) => document.getElementById(id);
+    const L = () => (window.appState && window.appState.cardLang === 'en' ? 'en' : 'hi');
+    const tr = (en, hi) => (L() === 'en' ? en : (hi == null ? en : hi));
+    const attrEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const bi = (en, hi) => `<span class="bi" data-en="${attrEsc(en)}" data-hi="${attrEsc(hi == null ? en : hi)}">${tr(en, hi)}</span>`;
+
+    function applyStaticLang(root) {
+      (root || document).querySelectorAll('[data-en]').forEach((el) => {
+        const v = el.getAttribute('data-' + L());
+        if (v == null) return;
+        if (el.tagName === 'INPUT') el.placeholder = v;
+        else if (el.tagName === 'OPTION') el.textContent = v;
+        else el.innerHTML = v;
+      });
+      if (root) renderMath(root);
+    }
+
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    window.playTone = function(freq = 520, type = 'sine', duration = 0.1, delay = 0) {
+      try {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        const start = audioCtx.currentTime + delay;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.12, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      } catch (e) {}
+    };
+    window.soundSuccess = function() { playTone(587.33, 'triangle', 0.09, 0); playTone(880, 'triangle', 0.16, 0.08); };
+    window.soundLevelVictory = function() {
+      playTone(523.25, 'triangle', 0.12, 0); playTone(659.25, 'triangle', 0.12, 0.11);
+      playTone(783.99, 'triangle', 0.12, 0.22); playTone(1046.50, 'triangle', 0.32, 0.34);
+    };
+    window.soundError = function() { playTone(200, 'sawtooth', 0.16, 0); playTone(150, 'sawtooth', 0.22, 0.12); };
+
+    function spawnFloatingXP(text, color) {
+      const layer = $('fx-layer');
+      const badge = document.createElement('div');
+      badge.className = 'xp-float';
+      badge.style.left = '50%';
+      badge.style.top = '42%';
+      badge.style.background = color || '#8EE08A';
+      badge.textContent = text;
+      layer.appendChild(badge);
+      setTimeout(() => badge.remove(), 1100);
+    }
+
+    let toastTimer = 0;
+    function toast(en, hi) {
+      const t = $('toast');
+      t.textContent = tr(en, hi);
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    window.renderMath = function(el = document.body) {
+      if (window.renderMathInElement) {
+        try {
+          renderMathInElement(el, {
+            delimiters: [ {left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false} ],
+            throwOnError: false
+          });
+        } catch (e) {}
+      }
+    };
+
+    /* ---------- Brain-Out popups for the host app (same look as the engine's) ---------- */
+    const HOST_POPUPS = [];
+    function hostPopup(o) {
+      const ov = document.createElement('div');
+      ov.className = 'hp-ov';
+      ov.innerHTML = `<div class="hp-pop ${o.cls || ''}" role="dialog"><div class="hp-top"><div class="hp-title">${o.title || ''}</div><span class="hp-lock" data-k="lock"></span><button class="hp-x" data-k="x" aria-label="Close">✕</button></div><div class="hp-body">${o.html}</div></div>`;
+      document.body.appendChild(ov);
+      const lockEl = ov.querySelector('[data-k="lock"]'), xBtn = ov.querySelector('[data-k="x"]');
+      let left = o.lock || 0, timer = 0, closed = false;
+      const api = { el: ov, owner: o.owner || null, closed: false };
+      api.close = () => {
+        if (closed) return;
+        closed = true; api.closed = true; clearInterval(timer);
+        const i = HOST_POPUPS.indexOf(api); if (i >= 0) HOST_POPUPS.splice(i, 1);
+        ov.remove();
+        if (o.onClose) o.onClose();
+      };
+      if (left > 0) {
+        xBtn.hidden = true; lockEl.hidden = false; lockEl.textContent = left + 's';
+        timer = setInterval(() => {
+          left--;
+          if (left <= 0) { clearInterval(timer); lockEl.hidden = true; xBtn.hidden = false; playTone(760, 'triangle', 0.08); }
+          else lockEl.textContent = left + 's';
+        }, 1000);
+      } else lockEl.hidden = true;
+      ov.addEventListener('click', (e) => {
+        if (e.target === ov) { if (left <= 0) api.close(); return; }
+        const b = e.target.closest('[data-k]');
+        if (!b) return;
+        const k = b.getAttribute('data-k');
+        if (k === 'x') { if (left <= 0) api.close(); }
+        else if (o.on) o.on(k, b, api);
+      });
+      HOST_POPUPS.push(api);
+      renderMath(ov);
+      return api;
+    }
+    function closeHostPopups(owner) { HOST_POPUPS.slice().forEach((p) => { if (!owner || p.owner === owner) p.close(); }); }
+    const BULB_SVG = '<svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true"><path d="M20 4c-7 0-12 5-12 11.500 0 4.400 2.400 7 4.400 9.200 1.300 1.400 2 2.700 2 4.300h11.200c0-1.600.7-2.900 2-4.300 2-2.200 4.400-4.800 4.400-9.200C32 9 27 4 20 4z" fill="#FFD600" stroke="#1E1E1E" stroke-width="2.5" stroke-linejoin="round"/><path d="M14 13c1-3 3.400-4.600 6-4.800" fill="none" stroke="#FFF7B0" stroke-width="2.400" stroke-linecap="round"/><rect x="14.500" y="29.500" width="11" height="4" rx="1.500" fill="#B8B8B8" stroke="#1E1E1E" stroke-width="2.500"/><rect x="16.500" y="33.500" width="7" height="3.500" rx="1.500" fill="#8E8E8E" stroke="#1E1E1E" stroke-width="2.500"/><path d="M16.500 22l3.500-4 3.500 4" fill="none" stroke="#1E1E1E" stroke-width="1.800" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    /* =========================================================================
+       2. PERSISTENT STATE (2 Classic Games + 7 Engine Games + bookmarks)
+       ========================================================================= */
+    const STORAGE_KEY = 'CHEM_EXPLORER_V1_STATE';
+    window.appState = {
+      user: { name: '', gender: 'male', loggedIn: false },
+      xp: 0,
+      streak: 1,
+      dailyCardsCount: 0,
+      dailyBonusClaimedDate: '',
+      cardLang: 'hi',
+      solvedCards: [],
+      periodicGame: { unlockedLevel: 1, currentLevel: 1, placedByLevel: { 1: [], 2: [], 3: [], 4: [], 5: [] } },
+      aufbauRandomClears: 0,
+      gameStats: {},
+      bookmarks: []
+    };
+
+    const CLASSIC_GAMES_CATALOG = [
+      { id: 'pt', isClassic: true, icon: '🧪', title: 'Periodic Drag', titleHi: 'आवर्त सारणी ड्रैग', sub: 's, p, d, f & 118 Boss', subHi: 's, p, d, f और 118 बॉस', chapter: 'Ch 3 • Modern Periodic Table', chapterHi: 'अध्याय 3 • आधुनिक आवर्त सारणी', color: '#CFE3FF', maxLvl: 5 },
+      { id: 'aufbau', isClassic: true, icon: '🌀', title: 'Aufbau Orbital Filler', titleHi: 'ऑफबाऊ कक्षक भराई', sub: '5 Lvls + 🎲 Random 1–118', subHi: '5 स्तर + 🎲 रैंडम 1–118', chapter: 'Ch 2 • Electronic Config', chapterHi: 'अध्याय 2 • इलेक्ट्रॉनिक विन्यास', color: '#E5D4FF', maxLvl: 6 }
+    ];
+    const PASTELS = ['#CFE3FF', '#E5D4FF', '#CDEBCB', '#FFD95A', '#FF9B90', '#8EE08A', '#F8D9B8', '#CFE3FF', '#E5D4FF'];
+
+    function engine() { return window.ChemGamesEngine || null; }
+    function getFullGamesCatalog() {
+      const e = engine();
+      const newGames = (e && e.NEW_GAMES_CATALOG) ? e.NEW_GAMES_CATALOG : [];
+      return CLASSIC_GAMES_CATALOG.concat(newGames);
+    }
+    function gname(g) { return tr(g.title, g.titleHi || g.title); }
+    function gsub(g) { return tr(g.sub, g.subHi || g.sub); }
+
+    function ensureGameStats() {
+      if (!appState.gameStats) appState.gameStats = {};
+      CLASSIC_GAMES_CATALOG.forEach((g) => {
+        if (!appState.gameStats[g.id] || !appState.gameStats[g.id].levels) appState.gameStats[g.id] = { unlocked: 1, levels: {} };
+        for (let i = 1; i <= g.maxLvl; i++) {
+          if (!appState.gameStats[g.id].levels[i]) appState.gameStats[g.id].levels[i] = { played: 0, completed: 0 };
+        }
+      });
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          window.appState = { ...window.appState, ...parsed };
+          if (!Array.isArray(appState.solvedCards)) appState.solvedCards = [];
+          if (!Array.isArray(appState.bookmarks)) appState.bookmarks = [];
+          appState.periodicGame = { ...appState.periodicGame, ...(parsed.periodicGame || {}) };
+        } catch (e) {}
+      }
+      if (appState.cardLang !== 'en') appState.cardLang = 'hi';
+      ensureGameStats();
+    }
+
+    let appliedLang = null;
+    window.saveState = function() {
+      appState.xp = Math.max(0, appState.xp);
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); } catch (e) {}
+      updateHeaderUI();
+      if (appliedLang !== null && appliedLang !== L()) applyLanguageEverywhere();
+    };
+
+    function updateHeaderUI() {
+      $('header-name').textContent = appState.user.name || tr('Aspirant', 'अभ्यर्थी');
+      $('header-avatar').textContent = appState.user.gender === 'female' ? '👩‍🎓' : '👨‍🎓';
+      $('xp-count').textContent = appState.xp;
+      $('streak-count').textContent = appState.streak;
+      const done = Math.min(10, appState.dailyCardsCount);
+      $('daily-cards-done').textContent = done;
+      $('daily-progress-fill').style.width = (done * 10) + '%';
+    }
+
+    window.adjustXP = function(delta, label = '') {
+      appState.xp = Math.max(0, appState.xp + delta);
+      saveState();
+      if (delta > 0) spawnFloatingXP(`+${delta} XP ${label}`, '#8EE08A');
+      else if (delta < 0) spawnFloatingXP(`${delta} XP ${label}`, '#FF9B90');
+    };
+
+    /* =========================================================================
+       3. GLOBAL LIVE LANGUAGE TOGGLE (🌐 हिंदी / EN)
+       ========================================================================= */
+    function toggleAppLanguage() {
+      appState.cardLang = L() === 'hi' ? 'en' : 'hi';
+      playTone(620, 'sine', 0.08);
+      saveState();
+      if (appliedLang !== L()) applyLanguageEverywhere();
+    }
+
+    function applyLanguageEverywhere() {
+      appliedLang = L();
+      document.documentElement.lang = appliedLang;
+      document.body.classList.toggle('lang-hi', appliedLang === 'hi');
+      applyStaticLang(document.body);
+      updateHeaderUI();
+      renderFlashcard();
+      const gamesActive = $('view-games').classList.contains('active');
+      if (gamesActive) {
+        if ($('games-hub-screen').style.display !== 'none') renderGamesHubCards();
+        if ($('games-level-screen').style.display !== 'none') openLevelMap(activeGameId);
+        if ($('games-play-screen').style.display !== 'none') refreshClassicLabels();
+      }
+      drawLabGraph();
+      runChemCalc();
+      renderVaultList();
+      const arena = $('arena-new-engine');
+      if (arena && arena.__cge && typeof arena.__cge.applyLang === 'function') arena.__cge.applyLang();
+      HOST_POPUPS.forEach((p) => applyStaticLang(p.el));
+    }
+
+    /* =========================================================================
+       4. LOGIN HANDLERS
+       ========================================================================= */
+    let tempGender = 'male';
+    function selectGender(g) {
+      tempGender = g;
+      $('gen-male').classList.toggle('active', g === 'male');
+      $('gen-female').classList.toggle('active', g === 'female');
+    }
+    function completeLogin() {
+      const nameInput = $('user-name-input').value.trim();
+      if (!nameInput) {
+        soundError();
+        const card = document.querySelector('.login-card');
+        card.classList.remove('shake-anim'); void card.offsetWidth; card.classList.add('shake-anim');
+        toast('Please enter your name!', 'कृपया अपना नाम लिखें!');
+        return;
+      }
+      appState.user.name = nameInput;
+      appState.user.gender = tempGender;
+      appState.user.loggedIn = true;
+      saveState();
+      soundLevelVictory();
+      $('login-modal').style.display = 'none';
+    }
+
+    /* =========================================================================
+       5. TOUCH-DRAG FLASHCARDS (Hold & Drag + -3 XP Penalty + +100 Daily Bonus)
+       ========================================================================= */
+    const FLASHCARD_DB = {
+      ch1: [
+        { id:"ch1_1", topic:"Molarity vs Molality", q_en:"Why does Molality (m) NOT change with temperature while Molarity (M) changes?", q_hi:"तापमान बदलने पर मोललता (Molality) क्यों नहीं बदलती, जबकि मोलरता (Molarity) बदल जाती है?", a_hi:"मोललता विलायक के द्रव्यमान (Mass of Solvent) पर निर्भर करती है जो तापमान से स्वतंत्र है, जबकि मोलरता आयतन (Volume) पर निर्भर करती है।", a_en:"Molality depends on solvent mass (temperature-independent), whereas Molarity depends on solution volume.", formula:"$$M = \\frac{n}{V_{\\text{L}}} \\quad , \\quad m = \\frac{n}{W_{\\text{kg}}}$$" },
+        { id:"ch1_2", topic:"Limiting Reagent", q_en:"How do you quickly find the Limiting Reagent (LR) in a balanced reaction?", q_hi:"संतुलित अभिक्रिया में सीमांत अभिकर्मक (Limiting Reagent) को सबसे तेज़ी से कैसे पहचानते हैं?", a_hi:"जिस अभिकारक का (Given Moles / Stoichiometric Coefficient) अनुपात सबसे कम (Minimum) होता है, वही Limiting Reagent होता है।", a_en:"The reactant with the minimum ratio of Given Moles to Stoichiometric Coefficient is the Limiting Reagent.", formula:"$$\\text{LR} = \\min\\left(\\frac{n_{\\text{given}}}{\\text{Coeff.}}\\right)$$" },
+        { id:"ch1_3", topic:"Empirical Formula", q_en:"What is the relation between Molecular Formula and Empirical Formula?", q_hi:"अणु सूत्र (Molecular Formula) और मूलानुपाती सूत्र (Empirical Formula) में क्या संबंध है?", a_hi:"अणु सूत्र = $n \\times$ (मूलानुपाती सूत्र), जहाँ $n$ मोलर द्रव्यमान और मूलानुपाती सूत्र द्रव्यमान का अनुपात है।", a_en:"Molecular Formula = n × Empirical Formula, where n = Molar Mass / Empirical Formula Mass.", formula:"$$n = \\frac{\\text{Molar Mass}}{\\text{Empirical Mass}}$$" }
+      ],
+      ch2: [
+        { id:"ch2_1", topic:"Heisenberg Principle", q_en:"State Heisenberg's Uncertainty Principle formula.", q_hi:"हाइजेनबर्ग का अनिश्चितता सिद्धांत (Heisenberg's Uncertainty Principle) क्या है?", a_hi:"किसी इलेक्ट्रॉन की सटीक स्थिति ($\\Delta x$) और संवेग ($\\Delta p$) का एक साथ निर्धारण असंभव है।", a_en:"Simultaneous exact determination of position and momentum of an electron is impossible.", formula:"$$\\Delta x \\cdot \\Delta p_x \\ge \\frac{h}{4\\pi}$$" },
+        { id:"ch2_2", topic:"Orbital Nodes", q_en:"How many Radial and Angular nodes are present in a 3p orbital?", q_hi:"3p कक्षक (Orbital) में कितने त्रिज्य नोड (Radial) और कोणीय नोड (Angular) होते हैं?", a_hi:"3p के लिए $n=3, l=1$: त्रिज्य नोड्स = $n-l-1 = 1$, और कोणीय नोड्स = $l = 1$।", a_en:"For 3p (n=3, l=1): Radial Nodes = n - l - 1 = 1, and Angular Nodes = l = 1.", formula:"$$\\text{Radial} = n - l - 1 = 1 \\; , \\; \\text{Angular} = l = 1$$" }
+      ],
+      ch3: [
+        { id:"ch3_1", topic:"IE1 Exception", q_en:"Why is First Ionization Enthalpy of Boron (B) less than Beryllium (Be)?", q_hi:"बोरोन (B) की प्रथम आयनन एन्थैल्पी बेरिलियम (Be) से कम क्यों होती है?", a_hi:"Be ($2s^2$) में पूर्ण पूरित $2s$ उपकोश होता है जिसकी भेदन क्षमता (Penetration) $2p$ से अधिक होती है।", a_en:"Be has a stable fully-filled 2s subshell with higher penetration than Boron's 2p electron.", formula:"$$IE_1:\\; \\text{Li} < \\text{B} < \\text{Be} < \\text{C} < \\text{O} < \\text{N}$$" },
+        { id:"ch3_2", topic:"Electron Gain Exception", q_en:"Why is Electron Gain Enthalpy of Chlorine more negative than Fluorine?", q_hi:"क्लोरीन (Cl) की इलेक्ट्रॉन लब्धि एन्थैल्पी फ्लोरीन (F) से अधिक ऋणात्मक क्यों होती है?", a_hi:"फ्लोरीन के छोटे $2p$ उपकोश में प्रबल अंतर-इलेक्ट्रॉनिक प्रतिकर्षण (Inter-electronic repulsion) होता है।", a_en:"Fluorine's compact 2p subshell experiences strong inter-electronic repulsion.", formula:"$$|\\Delta_{eg}H|:\\; \\text{Cl} > \\text{F} > \\text{Br} > \\text{I}$$" }
+      ],
+      ch4: [
+        { id:"ch4_1", topic:"Dipole Moment", q_en:"Why does NH3 have a higher Dipole Moment than NF3?", q_hi:"NH3 का द्विध्रुव आघूर्ण (Dipole Moment) NF3 से अधिक क्यों होता है?", a_hi:"NH3 में लोन पेयर और N-H बंध द्विध्रुव एक ही दिशा में जुड़ते हैं, जबकि NF3 में वे विपरीत दिशा में होते हैं।", a_en:"In NH3, lone pair dipole and N-H bond dipoles point in the same direction, whereas in NF3 they oppose.", formula:"$$\\mu(\\text{NH}_3) = 1.47\\text{ D} > \\mu(\\text{NF}_3) = 0.24\\text{ D}$$" }
+      ],
+      ch5: [
+        { id:"ch5_1", topic:"Gibbs Spontaneity", q_en:"When is a reaction spontaneous at ALL temperatures?", q_hi:"कोई अभिक्रिया सभी तापमानों पर स्वतः प्रवर्तित (Spontaneous) कब होती है?", a_hi:"जब $\\Delta H < 0$ (ऊष्माक्षेपी) हो और $\\Delta S > 0$ हो, तब $\\Delta G$ हमेशा ऋणात्मक रहता है।", a_en:"When Delta H < 0 and Delta S > 0, Delta G is negative at all temperatures.", formula:"$$\\Delta G = \\Delta H - T\\Delta S < 0$$" }
+      ],
+      ch6: [
+        { id:"ch6_1", topic:"CrO5 Butterfly OS", q_en:"What is the oxidation state of Cr in CrO5 (Butterfly structure)?", q_hi:"CrO5 (तितली संरचना) में क्रोमियम (Cr) की ऑक्सीकरण अवस्था क्या है?", a_hi:"CrO5 में दो पेरॉक्साइड बंध (-O-O-) होने के कारण 4 ऑक्सीजन पर -1 और 1 ऑक्सीजन पर -2 आवेश होता है, अतः Cr = +6 है।", a_en:"Due to two peroxide linkages, four O atoms are -1 and one O atom is -2, giving Cr = +6.", formula:"$$x + 4(-1) + 1(-2) = 0 \\Rightarrow x = +6$$" }
+      ]
+    };
+
+    let currentDeck = [];
+    let currentCardIndex = 0;
+
+    function loadFlashcardDeck() {
+      const ch = $('chapter-selector').value;
+      currentDeck = FLASHCARD_DB[ch] || FLASHCARD_DB.ch1;
+      currentCardIndex = 0;
+      renderFlashcard();
+    }
+
+    function renderFlashcard() {
+      if (!currentDeck.length) return;
+      const card = currentDeck[currentCardIndex];
+      const isHi = L() === 'hi';
+      const alreadySolved = appState.solvedCards.includes(card.id);
+
+      $('deck-counter').textContent = tr(`Card ${currentCardIndex + 1}/${currentDeck.length}`, `कार्ड ${currentCardIndex + 1}/${currentDeck.length}`);
+      $('fc-topic').textContent = card.topic;
+      $('fc-lang-btn').textContent = isHi ? '🌐 हिंदी ▸ EN' : '🌐 EN ▸ हिंदी';
+      $('fc-question').textContent = isHi ? card.q_hi : card.q_en;
+      $('fc-ans-text').innerHTML = isHi ? card.a_hi : card.a_en;
+      $('fc-formula').innerHTML = card.formula || '';
+
+      if (!$('fc-answer-box').dataset.keep) {
+        $('fc-answer-box').style.display = 'none';
+        $('fc-reveal-btn').style.display = 'block';
+      }
+      $('stamp-right').style.opacity = '0';
+      $('stamp-left').style.opacity = '0';
+      $('fc-right-btn').innerHTML = alreadySolved ? tr('Got It! (Repeat +5 XP) ➡️', 'सही! (दोहराव +5 XP) ➡️') : tr('Got It! (+10 XP) ➡️', 'सही! (+10 XP) ➡️');
+      renderMath($('active-flashcard'));
+    }
+
+    function revealFlashcardAnswer() {
+      playTone(640, 'sine', 0.09);
+      $('fc-answer-box').dataset.keep = '1';
+      $('fc-answer-box').style.display = 'block';
+      $('fc-reveal-btn').style.display = 'none';
+      renderMath($('active-flashcard'));
+    }
+
+    function handleCardSwipe(isCorrect) {
+      const box = $('active-flashcard');
+      const card = currentDeck[currentCardIndex];
+
+      if (isCorrect) {
+        soundSuccess();
+        const isRepeat = appState.solvedCards.includes(card.id);
+        adjustXP(isRepeat ? 5 : 10, isRepeat ? tr('(Repeat)', '(दोहराव)') : '');
+
+        if (!isRepeat) {
+          appState.solvedCards.push(card.id);
+          appState.dailyCardsCount += 1;
+          const todayStr = new Date().toDateString();
+          if (appState.dailyCardsCount === 10 && appState.dailyBonusClaimedDate !== todayStr) {
+            appState.dailyBonusClaimedDate = todayStr;
+            appState.streak += 1;
+            setTimeout(() => {
+              soundLevelVictory();
+              adjustXP(100, tr('🎯 DAILY TARGET BONUS!', '🎯 दैनिक लक्ष्य बोनस!'));
+              hostPopup({
+                title: '🎯 ' + bi('Daily Mission Accomplished!', 'दैनिक मिशन पूरा!'),
+                html: `<div class="hp-txt">${bi('You completed 10 NCERT Flashcards today!', 'आपने आज 10 NCERT फ्लैशकार्ड पूरे कर लिए!')}<br><b>${bi('Reward: +100 BONUS XP & Streak Increased!', 'इनाम: +100 बोनस XP और स्ट्रीक बढ़ी!')}</b></div>`
+              });
+            }, 300);
+          }
+        }
+        box.style.transform = 'translateX(120px) rotate(10deg)';
+        box.classList.add('got');
+      } else {
+        soundError();
+        adjustXP(-3, tr('(Missed Card)', '(चूका कार्ड)'));
+        box.style.transform = 'translateX(-120px) rotate(-10deg)';
+        box.classList.add('miss');
+      }
+      saveState();
+
+      setTimeout(() => {
+        box.style.transition = 'none';
+        box.style.transform = 'none';
+        box.classList.remove('got', 'miss');
+        currentCardIndex = (currentCardIndex + 1) % currentDeck.length;
+        delete $('fc-answer-box').dataset.keep;
+        renderFlashcard();
+        setTimeout(() => { box.style.transition = 'transform .22s ease, box-shadow .2s'; }, 30);
+      }, 220);
+    }
+
+    function initFlashcardDrag() {
+      const box = $('active-flashcard');
+      let startX = 0, currentX = 0, dragging = false;
+      box.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('button')) return;
+        dragging = true; startX = currentX = e.clientX; box.style.transition = 'none';
+        try { box.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+      box.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        currentX = e.clientX;
+        const dx = currentX - startX;
+        box.style.transform = `translateX(${dx}px) rotate(${dx * 0.06}deg)`;
+        $('stamp-right').style.opacity = dx > 35 ? Math.min(1, (dx - 35) / 60) : 0;
+        $('stamp-left').style.opacity = dx < -35 ? Math.min(1, (-dx - 35) / 60) : 0;
+      });
+      const end = () => {
+        if (!dragging) return;
+        dragging = false;
+        box.style.transition = 'transform .22s ease, box-shadow .2s';
+        const dx = currentX - startX;
+        if (dx > 85) handleCardSwipe(true);
+        else if (dx < -85) handleCardSwipe(false);
+        else {
+          box.style.transform = 'none';
+          $('stamp-right').style.opacity = '0';
+          $('stamp-left').style.opacity = '0';
+        }
+      };
+      box.addEventListener('pointerup', end);
+      box.addEventListener('pointercancel', end);
+    }
+
+    /* =========================================================================
+       6. 9-GAMES HUB: SQUARE GRID -> LEVEL / DIFFICULTY MAP -> ARENA
+       ========================================================================= */
+    let activeGameId = 'pt';
+    let activeLevelNum = 1;
+    let currentCombo = 1;
+    let gameClockInterval = null;
+    let classicLevelStartTime = Date.now();
+    let classicMovesCount = 0;
+    let classicGood = 0, classicWrong = 0;
+    let classicHintPaid = false;
+    let lvlBmFilter = 'all';
+    const CLASSIC_OWNER = { owner: 'classic' };
+
+    function bookmarkCount(gid) {
+      const e = engine();
+      if (!e || typeof e.getBookmarks !== 'function') return 0;
+      try { return e.getBookmarks(gid || null).length; } catch (_) { return 0; }
+    }
+
+    function showGamesScreen(name) {
+      $('games-hub-screen').style.display = name === 'hub' ? 'block' : 'none';
+      $('games-level-screen').style.display = name === 'level' ? 'block' : 'none';
+      $('games-play-screen').style.display = name === 'play' ? 'block' : 'none';
+    }
+
+    function stopActiveGame() {
+      clearInterval(gameClockInterval);
+      closeHostPopups('classic');
+      const arena = $('arena-new-engine');
+      if (arena && arena.__cge && typeof arena.__cge.destroy === 'function') { try { arena.__cge.destroy(); } catch (_) {} arena.__cge = null; }
+      if (arena) arena.innerHTML = '';
+      const vm = $('cge-modal'); if (vm) vm.remove();
+      document.querySelectorAll('.cge-ov').forEach((o) => o.remove());
+    }
+
+    function renderGamesSquareHub() {
+      ensureGameStats();
+      stopActiveGame();
+      showGamesScreen('hub');
+      renderGamesHubCards();
+    }
+
+    function renderGamesHubCards() {
+      $('hub-bm-count').textContent = bookmarkCount(null);
+      const grid = $('games-square-container');
+      grid.innerHTML = '';
+      getFullGamesCatalog().forEach((g, idx) => {
+        const st = appState.gameStats[g.id] || {};
+        let totalPlays = 0, totalWins = 0, badgeStr = '';
+        if (g.isClassic) {
+          Object.values(st.levels || {}).forEach((l) => { totalPlays += (l.played || 0); totalWins += (l.completed || 0); });
+          badgeStr = tr(`Lvl ${st.unlocked || 1}/${g.maxLvl}`, `स्तर ${st.unlocked || 1}/${g.maxLvl}`);
+        } else {
+          totalPlays = st.plays || 0;
+          totalWins = st.wins || 0;
+          badgeStr = tr('3 Modes', '3 मोड');
+        }
+        const card = document.createElement('div');
+        card.className = 'game-square-card';
+        card.innerHTML = `
+          <div class="gs-strip" style="background:${PASTELS[idx % PASTELS.length]};">
+            <span class="gs-ico">${g.icon}</span>
+            <span class="gs-badge">${badgeStr}</span>
+          </div>
+          <div class="gs-body">
+            <div class="gs-title">${gname(g)}</div>
+            <div class="gs-sub">${gsub(g)}</div>
+          </div>
+          <div class="gs-foot">🎮 ${tr('Played', 'खेले')}: ${totalPlays} &nbsp;|&nbsp; 🏆 ${tr('Wins', 'जीत')}: ${totalWins}</div>`;
+        card.onclick = () => { playTone(580, 'sine', 0.07); openLevelMap(g.id); };
+        grid.appendChild(card);
+      });
+    }
+
+    function backToGamesHub() {
+      playTone(460, 'sine', 0.07);
+      renderGamesSquareHub();
+    }
+
+    function openHubBookmarks() {
+      playTone(600, 'triangle', 0.08);
+      const e = engine();
+      if (!e || typeof e.openBookmarksModal !== 'function') { toast('Bookmarks are not available yet', 'बुकमार्क अभी उपलब्ध नहीं है'); return; }
+      e.openBookmarksModal(null, (entry) => launchBookmarkedQuestion(entry));
+    }
+
+    function launchBookmarkedQuestion(entry) {
+      if (!entry) return;
+      if (!$('view-games').classList.contains('active')) switchTab('games', document.querySelectorAll('.nav-item')[2]);
+      launchNewEngineGame(entry.gameId, entry.mode, entry.seedData);
+    }
+
+    function starsText(n) { return n ? '★'.repeat(n) + '☆'.repeat(3 - n) : tr('No stars yet', 'अभी कोई स्टार नहीं'); }
+
+    function openLevelMap(gameId) {
+      ensureGameStats();
+      if (activeGameId !== gameId || $('games-play-screen').style.display !== 'none') stopActiveGame();
+      activeGameId = gameId;
+      showGamesScreen('level');
+
+      const gameMeta = getFullGamesCatalog().find((g) => g.id === gameId);
+      $('lvl-map-title').textContent = `${gameMeta.icon} ${gname(gameMeta)}`;
+
+      const list = $('level-map-list');
+      list.innerHTML = '';
+
+      if (gameMeta.isClassic) {
+        const st = appState.gameStats[gameId];
+        const ptNames = [['', ''], ['s-Block Elements', 's-ब्लॉक तत्व'], ['p-Block Elements', 'p-ब्लॉक तत्व'], ['d-Block Transition', 'd-ब्लॉक संक्रमण तत्व'], ['f-Block Inner-Transition', 'f-ब्लॉक अंतः-संक्रमण तत्व'], ['Full 118 Boss Table', 'पूरी 118 बॉस सारणी']];
+        const aufNames = [['', ''], ['Nitrogen (Z=7)', 'नाइट्रोजन (Z=7)'], ['Phosphorus (Z=15)', 'फॉस्फोरस (Z=15)'], ['Titanium (Z=22)', 'टाइटेनियम (Z=22)'], ['Chromium Exception (Z=24)', 'क्रोमियम अपवाद (Z=24)'], ['Copper Exception (Z=29)', 'कॉपर अपवाद (Z=29)'], ['🎲 Random 1–118 Endless Mode', '🎲 रैंडम 1–118 अनंत मोड']];
+        for (let lvl = 1; lvl <= gameMeta.maxLvl; lvl++) {
+          const unlocked = lvl <= st.unlocked;
+          const lvlStat = st.levels[lvl] || { played: 0, completed: 0 };
+          const nm = (gameId === 'pt' ? ptNames[lvl] : aufNames[lvl]);
+          const row = document.createElement('div');
+          row.className = `level-map-card ${!unlocked ? 'locked' : ''}`;
+          row.innerHTML = `
+            <div>
+              <div class="lm-title">${unlocked ? '🔓' : '🔒'} ${tr('Level', 'स्तर')} ${lvl}: ${tr(nm[0], nm[1])}</div>
+              <div class="lm-stats">🎮 ${tr('Played', 'खेले')}: ${lvlStat.played} ${tr('times', 'बार')} &nbsp;|&nbsp; 🏆 ${tr('Completed', 'पूरे')}: ${lvlStat.completed} ${tr('times', 'बार')}</div>
+            </div>
+            <button class="lm-go" style="background:${unlocked ? '#8EE08A' : '#E4E0D2'};">${unlocked ? tr('Play ▶', 'खेलें ▶') : tr('Locked', 'बंद')}</button>`;
+          row.onclick = () => {
+            if (!unlocked) { soundError(); toast('Clear the previous level to unlock!', 'अनलॉक करने के लिए पिछला स्तर पूरा करें!'); return; }
+            launchClassicGameLevel(gameId, lvl);
+          };
+          list.appendChild(row);
+        }
+        $('level-bm-section').style.display = 'none';
+      } else {
+        const st = appState.gameStats[gameId] || { modes: {} };
+        const modeMeta = [
+          { key: 'easy', en: '🟢 Easy - NCERT', hi: '🟢 आसान - NCERT', xp: '+50 XP', cls: 'm-easy' },
+          { key: 'moderate', en: '🟡 Moderate - NEET', hi: '🟡 मध्यम - NEET', xp: '+75 XP', cls: 'm-moderate' },
+          { key: 'hard', en: '🔴 Hard - JEE', hi: '🔴 कठिन - JEE', xp: '+100 XP', cls: 'm-hard' }
+        ];
+        modeMeta.forEach((m) => {
+          const mStat = (st.modes && st.modes[m.key]) ? st.modes[m.key] : {};
+          const plays = mStat.plays || 0, wins = mStat.wins || 0, best = mStat.bestStars || 0, qn = mStat.qIndex || 1;
+          const row = document.createElement('div');
+          row.className = 'level-map-card';
+          row.innerHTML = `
+            <div>
+              <div class="lm-title">${tr(m.en, m.hi)} <span class="muted" style="font-size:.78rem;">(${m.xp})</span><span class="lm-q">(Q. ${qn})</span></div>
+              <div class="lm-stats">🎮 ${tr('Played', 'खेले')}: ${plays} &nbsp;|&nbsp; 🏆 ${tr('Completed', 'पूरे')}: ${wins}<br>⭐ ${tr('Best Stars', 'सर्वश्रेष्ठ स्टार')}: <b>${starsText(best)}</b></div>
+            </div>
+            <button class="lm-go ${m.cls}">${tr('Play ▶', 'खेलें ▶')}</button>`;
+          row.onclick = () => launchNewEngineGame(gameId, m.key);
+          list.appendChild(row);
+        });
+        $('level-bm-section').style.display = 'block';
+        renderLevelBookmarks(gameId);
+      }
+    }
+
+    function renderLevelBookmarks(gameId) {
+      const e = engine();
+      const sec = $('level-bm-section');
+      const chips = [['all', 'All', 'सभी'], ['easy', 'Easy', 'आसान'], ['moderate', 'Moderate', 'मध्यम'], ['hard', 'Hard', 'कठिन']];
+      let all = [];
+      try { all = (e && e.getBookmarks) ? e.getBookmarks(gameId).slice() : []; } catch (_) { all = []; }
+      all.sort((a, b) => b.timestamp - a.timestamp);
+      const shown = all.filter((b) => lvlBmFilter === 'all' || b.mode === lvlBmFilter);
+      const modeName = { easy: ['Easy', 'आसान'], moderate: ['Moderate', 'मध्यम'], hard: ['Hard', 'कठिन'] };
+      sec.innerHTML = `
+        <h4>🔖 ${tr('Bookmarked Questions for this Game', 'इस गेम के बुकमार्क प्रश्न')} <span class="bm-count">${all.length}</span></h4>
+        <div class="chips">${chips.map((c) => `<button class="chip ${c[0] === lvlBmFilter ? 'on' : ''}" data-f="${c[0]}">${tr(c[1], c[2])}</button>`).join('')}</div>
+        <div class="bm-list">${shown.length ? shown.map((b, i) => `<button class="bm-item" data-i="${i}"><span class="mode-dot m-${b.mode}">${tr(modeName[b.mode][0], modeName[b.mode][1])}</span> <b>(Q. ${b.qNum})</b> ${tr(b.titleEn, b.titleHi)}</button>`).join('') : `<div class="bm-empty">${tr('No bookmarked questions yet. Tap 🔖 inside a game to save one.', 'अभी कोई बुकमार्क प्रश्न नहीं। किसी गेम में 🔖 दबाकर प्रश्न सहेजें।')}</div>`}</div>`;
+      sec.querySelectorAll('.chip').forEach((c) => { c.onclick = () => { lvlBmFilter = c.getAttribute('data-f'); playTone(520, 'sine', 0.05); renderLevelBookmarks(gameId); }; });
+      sec.querySelectorAll('.bm-item').forEach((c) => {
+        c.onclick = () => { const entry = shown[parseInt(c.getAttribute('data-i'), 10)]; if (entry) { playTone(640, 'triangle', 0.08); launchNewEngineGame(entry.gameId, entry.mode, entry.seedData); } };
+      });
+    }
+
+    function launchNewEngineGame(gameId, difficultyMode, forcedSeed) {
+      stopActiveGame();
+      activeGameId = gameId;
+      showGamesScreen('play');
+      $('classic-bar').style.display = 'none';
+      $('combo-badge').style.display = 'none';
+      $('game-timer-display').style.display = 'none';
+      $('arena-pt').style.display = 'none';
+      $('arena-aufbau').style.display = 'none';
+      const newArena = $('arena-new-engine');
+      newArena.style.display = 'block';
+      const e = engine();
+      if (e && typeof e.mountGame === 'function') e.mountGame(gameId, difficultyMode, newArena, forcedSeed || null);
+      else toast('Games engine not loaded', 'गेम इंजन लोड नहीं हुआ');
+    }
+
+    /* ---------- Classic game shell: Brain-Out top bar, 5s instruction popup, hint, victory ---------- */
+    let classicInstrHtml = '', classicHintHtml = '', classicLvlLabel = '';
+
+    function launchClassicGameLevel(gameId, lvl) {
+      stopActiveGame();
+      activeGameId = gameId;
+      activeLevelNum = lvl;
+      currentCombo = 1;
+      classicMovesCount = 0; classicGood = 0; classicWrong = 0; classicHintPaid = false;
+      classicLevelStartTime = Date.now();
+      updateComboBadge();
+
+      appState.gameStats[gameId].levels[lvl].played += 1;
+      saveState();
+
+      showGamesScreen('play');
+      $('arena-new-engine').style.display = 'none';
+      $('classic-bar').style.display = 'flex';
+      $('combo-badge').style.display = 'inline-block';
+      $('game-timer-display').style.display = 'inline-block';
+      $('arena-pt').style.display = (gameId === 'pt') ? 'block' : 'none';
+      $('arena-aufbau').style.display = (gameId === 'aufbau') ? 'block' : 'none';
+      $('hint-btn').classList.remove('used');
+
+      gameClockInterval = setInterval(updateClock, 1000);
+      updateClock();
+      if (gameId === 'pt') loadPeriodicLevel(lvl); else loadAufbauLevel(lvl);
+      buildClassicTexts();
+      refreshClassicLabels();
+      openClassicInstr(true);
+    }
+
+    const PT_NAMES = [['', ''], ['s-Block Elements', 's-ब्लॉक तत्व'], ['p-Block Elements', 'p-ब्लॉक तत्व'], ['d-Block Transition', 'd-ब्लॉक संक्रमण तत्व'], ['f-Block Inner-Transition', 'f-ब्लॉक अंतः-संक्रमण तत्व'], ['Full 118 Boss Table', 'पूरी 118 बॉस सारणी']];
+    const PT_HINTS = [
+      null,
+      ['s-block = Groups 1 & 2 (plus H and He). They sit on the far left of the table and their last electron enters an s orbital. Group number = valence electrons.', 's-ब्लॉक = वर्ग 1 व 2 (साथ में H और He)। ये सारणी के बाएँ छोर पर होते हैं और इनका अंतिम इलेक्ट्रॉन s कक्षक में जाता है। वर्ग संख्या = संयोजी इलेक्ट्रॉन।'],
+      ['p-block = Groups 13–18 on the right. Valence electrons = group number − 10, and the period number tells the number of shells.', 'p-ब्लॉक = दाईं ओर वर्ग 13–18। संयोजी इलेक्ट्रॉन = वर्ग संख्या − 10, और आवर्त संख्या कोशों की संख्या बताती है।'],
+      ['d-block = Groups 3–12 in the middle (transition metals). The (n−1)d subshell fills; Period 4 runs from Sc to Zn.', 'd-ब्लॉक = बीच में वर्ग 3–12 (संक्रमण धातुएँ)। (n−1)d उपकोश भरता है; आवर्त 4 में Sc से Zn तक तत्व हैं।'],
+      ['f-block = the two rows below the table: lanthanoids (Ce–Lu) in Period 6 and actinoids (Th–Lr) in Period 7, where 4f / 5f fills.', 'f-ब्लॉक = सारणी के नीचे की दो पंक्तियाँ: आवर्त 6 के लैन्थेनॉइड (Ce–Lu) और आवर्त 7 के ऐक्टिनॉइड (Th–Lr), जहाँ 4f / 5f भरता है।'],
+      ['Combine all rules: period = number of shells; groups 1–2 are s, 13–18 are p, 3–12 are d, and the two bottom rows are f. Noble gases are in Group 18 (He on the top right).', 'सभी नियम मिलाएँ: आवर्त = कोशों की संख्या; वर्ग 1–2 s, 13–18 p, 3–12 d और नीचे की दो पंक्तियाँ f हैं। उत्कृष्ट गैसें वर्ग 18 में हैं (He ऊपर दाएँ)।']
+    ];
+    const AUF_HINTS_EN = {
+      1: "Nitrogen is 1s² 2s² 2p³. By Hund's rule, put one electron in each of the three 2p boxes before pairing.",
+      2: 'After the [Ne] core fill 3s² 3p³: a full 3s box, then one electron in each 3p box.',
+      3: 'After the [Ar] core fill 4s² 3d²: a full 4s box, then two unpaired electrons in 3d.',
+      4: 'NCERT exception! For half-filled stability Cr is 4s¹ 3d⁵ (six unpaired electrons).',
+      5: 'Exception! For fully-filled 3d¹⁰ stability Cu is 4s¹ 3d¹⁰.'
+    };
+
+    function buildClassicTexts() {
+      const meta = CLASSIC_GAMES_CATALOG.find((g) => g.id === activeGameId);
+      if (activeGameId === 'pt') {
+        const n = PT_NAMES[activeLevelNum];
+        classicInstrHtml = bi(`Pick an element tile from the tray (tap it, or drag it) and drop it on its exact slot in the periodic table. Slots show atomic numbers. A wrong drop breaks your combo. <b>Level ${activeLevelNum}: ${n[0]}</b>.`,
+          `ट्रे से कोई तत्व टाइल चुनें (टैप करें या खींचें) और उसे आवर्त सारणी में उसके सही स्थान पर रखें। स्थानों पर परमाणु क्रमांक लिखे हैं। गलत स्थान पर रखने से कॉम्बो टूट जाता है। <b>स्तर ${activeLevelNum}: ${n[1]}</b>।`);
+        classicHintHtml = bi(PT_HINTS[activeLevelNum][0], PT_HINTS[activeLevelNum][1]);
+        classicLvlLabel = tr(`Lvl ${activeLevelNum}`, `स्तर ${activeLevelNum}`);
+      } else {
+        classicInstrHtml = bi(`Tap an orbital box to cycle: empty → ↑ → ↑↓. Fill each subshell with exactly the electrons asked, obeying Hund's rule (one electron in every box before pairing) and the Pauli exclusion principle (max 2 per box, opposite spins). Then press <b>Lock Orbital Configuration</b>. <b>${currentAufbauSpec.title}</b>`,
+          `कक्षक बॉक्स पर टैप करें: खाली → ↑ → ↑↓। प्रत्येक उपकोश में ठीक उतने ही इलेक्ट्रॉन भरें जितने माँगे गए हैं, हुंड के नियम (युग्मन से पहले हर बॉक्स में एक इलेक्ट्रॉन) और पाउली अपवर्जन सिद्धांत (प्रति बॉक्स अधिकतम 2, विपरीत चक्रण) का पालन करते हुए। फिर <b>Lock Orbital Configuration</b> दबाएँ। <b>${currentAufbauSpec.title}</b>`);
+        const hEn = activeLevelNum === 6 ? currentAufbauSpec.hintEn : AUF_HINTS_EN[activeLevelNum];
+        classicHintHtml = bi(hEn, currentAufbauSpec.hint);
+        classicLvlLabel = activeLevelNum === 6 ? '🎲' : tr(`Lvl ${activeLevelNum}`, `स्तर ${activeLevelNum}`);
+      }
+      void meta;
+    }
+
+    function refreshClassicLabels() {
+      if ($('games-play-screen').style.display === 'none' || $('classic-bar').style.display === 'none') return;
+      buildClassicTexts();
+      const modeKey = activeLevelNum >= 5 ? 'hard' : (activeLevelNum >= 3 ? 'moderate' : 'easy');
+      const badge = $('classic-badge');
+      badge.className = 'hp-badge m-' + modeKey;
+      badge.textContent = modeKey === 'easy' ? tr('Easy', 'आसान') : modeKey === 'moderate' ? tr('Moderate', 'मध्यम') : tr('Hard', 'कठिन');
+      $('classic-qn').textContent = `(${classicLvlLabel})`;
+      $('pt-zoom-btn').textContent = ptZoomed ? tr('🔍 HD Scroll', '🔍 HD स्क्रॉल') : tr('🔍 Fit Screen', '🔍 स्क्रीन फिट');
+      if (activeGameId === 'pt') {
+        $('pt-target').innerHTML = `${tr('Place', 'रखें')}: ${tr(PT_NAMES[activeLevelNum][0], PT_NAMES[activeLevelNum][1])}`;
+      } else {
+        $('auf-target-badge').textContent = activeLevelNum === 6 ? tr('🎲 Endless Random 1-118', '🎲 अनंत रैंडम 1-118') : tr(`Level ${activeLevelNum} of 5`, `स्तर ${activeLevelNum} / 5`);
+        $('auf-random-streak').textContent = activeLevelNum === 6 ? tr(`Random Cleared: ${appState.aufbauRandomClears || 0}`, `रैंडम पूरे: ${appState.aufbauRandomClears || 0}`) : tr('Tap box: Empty → ↑ → ↑↓', 'बॉक्स टैप करें: खाली → ↑ → ↑↓');
+        $('auf-prompt').textContent = currentAufbauSpec.title;
+        $('auf-hint').textContent = tr(activeLevelNum === 6 ? currentAufbauSpec.promptEn : (AUF_FIXED_EN[activeLevelNum] || ''), currentAufbauSpec.prompt || currentAufbauSpec.hint);
+        renderAufbauBoxes();
+      }
+    }
+
+    function openClassicInstr(auto) {
+      closeHostPopups('classic');
+      const meta = CLASSIC_GAMES_CATALOG.find((g) => g.id === activeGameId);
+      hostPopup({
+        owner: 'classic', lock: auto ? 5 : 0, cls: 'hp-q',
+        title: bi('Mission', 'मिशन'),
+        html: `<div class="hp-tag">${meta.icon} ${bi(meta.title, meta.titleHi)} · ${classicLvlLabel}</div><div class="hp-txt">${classicInstrHtml}</div>`
+      });
+    }
+
+    function openClassicHint() {
+      if (!classicHintPaid) {
+        classicHintPaid = true;
+        $('hint-btn').classList.add('used');
+        adjustXP(-10, '💡 Hint (-10 XP)');
+      }
+      playTone(1320, 'sine', 0.18); playTone(1760, 'sine', 0.2, 0.08);
+      hostPopup({
+        owner: 'classic', cls: 'hp-h',
+        title: '💡 ' + bi('NCERT concept hint', 'NCERT संकल्पना संकेत'),
+        html: `<div class="hp-txt">${classicHintHtml}</div><div class="hp-note">${bi('Hint costs 10 XP (charged once per level).', 'संकेत का शुल्क 10 XP (प्रति स्तर एक बार)।')}</div>`
+      });
+    }
+
+    function updateComboBadge() { $('combo-badge').textContent = `🔥 ${currentCombo}x ${tr('Streak', 'स्ट्रीक')}`; }
+    function updateClock() {
+      const el = Math.max(0, Math.round((Date.now() - classicLevelStartTime) / 1000));
+      $('game-timer-display').textContent = `⏱ ${String(Math.floor(el / 60)).padStart(2, '0')}:${String(el % 60).padStart(2, '0')}`;
+    }
+
+    function completeClassicGameLevel(conceptEn, conceptHi) {
+      clearInterval(gameClockInterval);
+      closeHostPopups('classic');
+      soundLevelVictory();
+
+      const st = appState.gameStats[activeGameId];
+      st.levels[activeLevelNum].completed += 1;
+      const gameMeta = CLASSIC_GAMES_CATALOG.find((g) => g.id === activeGameId);
+      if (st.unlocked < gameMeta.maxLvl && activeLevelNum === st.unlocked) st.unlocked += 1;
+
+      const elapsedSec = Math.max(1, Math.round((Date.now() - classicLevelStartTime) / 1000));
+      const baseXP = (activeLevelNum >= 5) ? 100 : 50;
+      const timeBonus = Math.max(0, Math.min(30, 30 - Math.floor(elapsedSec / 6)));
+      const totalXP = baseXP + timeBonus;
+      const accuracy = Math.round(100 * (classicGood + 1) / (classicGood + 1 + classicWrong));
+      let stars = classicWrong === 0 ? 3 : classicWrong <= 2 ? 2 : 1;
+      if (classicHintPaid && stars === 3) stars = 2;
+
+      adjustXP(totalXP, tr(`🏆 Lvl ${activeLevelNum} Clear!`, `🏆 स्तर ${activeLevelNum} पूरा!`));
+      saveState();
+
+      const e = engine();
+      if (e && typeof e.showVictoryPopup === 'function') {
+        const gid = activeGameId, lvl = activeLevelNum;
+        e.showVictoryPopup({
+          gameId: gid,
+          mode: lvl >= 5 ? 'hard' : (lvl >= 3 ? 'moderate' : 'easy'),
+          qNum: lvl,
+          title: `${gameMeta.title} (Lvl ${lvl})`,
+          icon: gameMeta.icon,
+          color: gameMeta.color,
+          accuracy: accuracy,
+          moves: classicMovesCount,
+          timeSec: elapsedSec,
+          stars: stars,
+          xp: totalXP,
+          concept: [conceptEn, conceptHi || conceptEn],
+          onReplay: () => launchClassicGameLevel(gid, lvl),
+          onNext: () => {
+            const unlockedNow = appState.gameStats[gid].unlocked;
+            const next = (lvl < gameMeta.maxLvl && lvl + 1 <= unlockedNow) ? lvl + 1 : lvl;
+            launchClassicGameLevel(gid, next);
+          }
+        });
+      }
+    }
+
+    /* =========================================================================
+       7. CLASSIC GAME #1: PERIODIC TABLE DRAG & DROP (118 Elements)
+       ========================================================================= */
+    const RAW_ELEMENTS = [
+      [1,"H","1.008",1,1,"s"],[2,"He","4.002",1,18,"s"],
+      [3,"Li","6.94",2,1,"s"],[4,"Be","9.012",2,2,"s"],[5,"B","10.81",2,13,"p"],[6,"C","12.01",2,14,"p"],[7,"N","14.00",2,15,"p"],[8,"O","15.99",2,16,"p"],[9,"F","18.99",2,17,"p"],[10,"Ne","20.18",2,18,"p"],
+      [11,"Na","22.99",3,1,"s"],[12,"Mg","24.30",3,2,"s"],[13,"Al","26.98",3,13,"p"],[14,"Si","28.08",3,14,"p"],[15,"P","30.97",3,15,"p"],[16,"S","32.06",3,16,"p"],[17,"Cl","35.45",3,17,"p"],[18,"Ar","39.95",3,18,"p"],
+      [19,"K","39.10",4,1,"s"],[20,"Ca","40.08",4,2,"s"],[21,"Sc","44.96",4,3,"d"],[22,"Ti","47.87",4,4,"d"],[23,"V","50.94",4,5,"d"],[24,"Cr","51.99",4,6,"d"],[25,"Mn","54.94",4,7,"d"],[26,"Fe","55.85",4,8,"d"],[27,"Co","58.93",4,9,"d"],[28,"Ni","58.69",4,10,"d"],[29,"Cu","63.55",4,11,"d"],[30,"Zn","65.38",4,12,"d"],[31,"Ga","69.72",4,13,"p"],[32,"Ge","72.63",4,14,"p"],[33,"As","74.92",4,15,"p"],[34,"Se","78.97",4,16,"p"],[35,"Br","79.90",4,17,"p"],[36,"Kr","83.80",4,18,"p"],
+      [37,"Rb","85.47",5,1,"s"],[38,"Sr","87.62",5,2,"s"],[39,"Y","88.91",5,3,"d"],[40,"Zr","91.22",5,4,"d"],[41,"Nb","92.91",5,5,"d"],[42,"Mo","95.95",5,6,"d"],[43,"Tc","(98)",5,7,"d"],[44,"Ru","101.1",5,8,"d"],[45,"Rh","102.9",5,9,"d"],[46,"Pd","106.4",5,10,"d"],[47,"Ag","107.9",5,11,"d"],[48,"Cd","112.4",5,12,"d"],[49,"In","114.8",5,13,"p"],[50,"Sn","118.7",5,14,"p"],[51,"Sb","121.8",5,15,"p"],[52,"Te","127.6",5,16,"p"],[53,"I","126.9",5,17,"p"],[54,"Xe","131.3",5,18,"p"],
+      [55,"Cs","132.9",6,1,"s"],[56,"Ba","137.3",6,2,"s"],[57,"La","138.9",6,3,"d"],[72,"Hf","178.5",6,4,"d"],[73,"Ta","180.9",6,5,"d"],[74,"W","183.8",6,6,"d"],[75,"Re","186.2",6,7,"d"],[76,"Os","190.2",6,8,"d"],[77,"Ir","192.2",6,9,"d"],[78,"Pt","195.1",6,10,"d"],[79,"Au","197.0",6,11,"d"],[80,"Hg","200.6",6,12,"d"],[81,"Tl","204.4",6,13,"p"],[82,"Pb","207.2",6,14,"p"],[83,"Bi","208.9",6,15,"p"],[84,"Po","(209)",6,16,"p"],[85,"At","(210)",6,17,"p"],[86,"Rn","(222)",6,18,"p"],
+      [87,"Fr","(223)",7,1,"s"],[88,"Ra","(226)",7,2,"s"],[89,"Ac","(227)",7,3,"d"],[104,"Rf","(267)",7,4,"d"],[105,"Db","(268)",7,5,"d"],[106,"Sg","(269)",7,6,"d"],[107,"Bh","(270)",7,7,"d"],[108,"Hs","(277)",7,8,"d"],[109,"Mt","(278)",7,9,"d"],[110,"Ds","(281)",7,10,"d"],[111,"Rg","(282)",7,11,"d"],[112,"Cn","(285)",7,12,"d"],[113,"Nh","(286)",7,13,"p"],[114,"Fl","(289)",7,14,"p"],[115,"Mc","(290)",7,15,"p"],[116,"Lv","(293)",7,16,"p"],[117,"Ts","(294)",7,17,"p"],[118,"Og","(294)",7,18,"p"],
+      [58,"Ce","140.1",9,4,"f"],[59,"Pr","140.9",9,5,"f"],[60,"Nd","144.2",9,6,"f"],[61,"Pm","(145)",9,7,"f"],[62,"Sm","150.4",9,8,"f"],[63,"Eu","152.0",9,9,"f"],[64,"Gd","157.3",9,10,"f"],[65,"Tb","158.9",9,11,"f"],[66,"Dy","162.5",9,12,"f"],[67,"Ho","164.9",9,13,"f"],[68,"Er","167.3",9,14,"f"],[69,"Tm","168.9",9,15,"f"],[70,"Yb","173.0",9,16,"f"],[71,"Lu","175.0",9,17,"f"],
+      [90,"Th","232.0",10,4,"f"],[91,"Pa","231.0",10,5,"f"],[92,"U","238.0",10,6,"f"],[93,"Np","(237)",10,7,"f"],[94,"Pu","(244)",10,8,"f"],[95,"Am","(243)",10,9,"f"],[96,"Cm","(247)",10,10,"f"],[97,"Bk","(247)",10,11,"f"],[98,"Cf","(251)",10,12,"f"],[99,"Es","(252)",10,13,"f"],[100,"Fm","(257)",10,14,"f"],[101,"Md","(258)",10,15,"f"],[102,"No","(259)",10,16,"f"],[103,"Lr","(266)",10,17,"f"]
+    ];
+
+    const PT_LEVELS = [
+      { id: 1, filter: e => e[5] === 's' },
+      { id: 2, filter: e => e[5] === 'p' },
+      { id: 3, filter: e => e[5] === 'd' },
+      { id: 4, filter: e => e[5] === 'f' },
+      { id: 5, filter: () => true }
+    ];
+
+    let selectedElementZ = null;
+    let currentTrayElements = [];
+    let ptZoomed = false;
+
+    function togglePtZoom() {
+      ptZoomed = !ptZoomed;
+      $('pt-grid-board').classList.toggle('zoomed', ptZoomed);
+      $('pt-zoom-btn').textContent = ptZoomed ? tr('🔍 HD Scroll', '🔍 HD स्क्रॉल') : tr('🔍 Fit Screen', '🔍 स्क्रीन फिट');
+    }
+
+    function loadPeriodicLevel(lvlId) {
+      selectedElementZ = null;
+      const lvlObj = PT_LEVELS.find((l) => l.id === lvlId);
+      let placedArr = appState.periodicGame.placedByLevel[lvlId] || [];
+      const targetElements = RAW_ELEMENTS.filter(lvlObj.filter);
+      if (placedArr.length >= targetElements.length) {
+        placedArr = [];
+        appState.periodicGame.placedByLevel[lvlId] = [];
+      }
+      currentTrayElements = targetElements.filter((e) => !placedArr.includes(e[0]));
+      shuffleArray(currentTrayElements);
+      saveState();
+      renderPeriodicTray();
+      renderPeriodicBoard(lvlObj, placedArr, targetElements.length);
+    }
+
+    function shuffleArray(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+    }
+    function shufflePeriodicTray() { playTone(600, 'triangle', 0.09); shuffleArray(currentTrayElements); renderPeriodicTray(); }
+
+    function renderPeriodicTray() {
+      const tray = $('pt-tile-tray');
+      tray.innerHTML = '';
+      currentTrayElements.forEach((el) => {
+        const [z, sym, mass, row, col, block] = el;
+        const tile = document.createElement('div');
+        tile.className = `elem-tile block-${block} ${selectedElementZ === z ? 'selected-tile' : ''}`;
+        tile.draggable = true;
+        tile.innerHTML = `<div class="tile-z">${z}</div><div class="tile-sym">${sym}</div><div class="tile-mass">${mass}</div>`;
+        tile.onclick = () => { selectedElementZ = (selectedElementZ === z) ? null : z; playTone(500, 'sine', 0.06); renderPeriodicTray(); };
+        tile.ondragstart = (ev) => { selectedElementZ = z; ev.dataTransfer.setData('text/plain', z); };
+        tray.appendChild(tile);
+      });
+    }
+
+    function renderPeriodicBoard(lvlObj, placedArr, totalTargetCount) {
+      const board = $('pt-grid-board');
+      board.innerHTML = '';
+      $('pt-placed-count').textContent = `${placedArr.length}/${totalTargetCount}`;
+      RAW_ELEMENTS.forEach((el) => {
+        const [z, sym, mass, row, col, block] = el;
+        const isTargetInLevel = lvlObj.filter(el);
+        const isPlaced = placedArr.includes(z);
+        const slot = document.createElement('div');
+        slot.style.gridRow = row;
+        slot.style.gridColumn = col;
+        if (isPlaced) {
+          slot.className = `pt-slot filled-slot block-${block}`;
+          slot.innerHTML = `<strong style="font-size:.68rem;">${sym}</strong>`;
+        } else if (isTargetInLevel) {
+          slot.className = 'pt-slot target-slot';
+          slot.innerHTML = `<span>${z}</span>`;
+          slot.onclick = () => attemptPlaceElement(z);
+          slot.ondragover = (ev) => ev.preventDefault();
+          slot.ondrop = (ev) => { ev.preventDefault(); selectedElementZ = parseInt(ev.dataTransfer.getData('text/plain'), 10) || selectedElementZ; attemptPlaceElement(z); };
+        } else {
+          slot.className = 'pt-slot dimmed-slot';
+          slot.innerHTML = `<span>${sym}</span>`;
+        }
+        board.appendChild(slot);
+      });
+    }
+
+    function attemptPlaceElement(targetSlotZ) {
+      if (!selectedElementZ) { toast('Pick a tile from the tray first', 'पहले ट्रे से टाइल चुनें'); return; }
+      classicMovesCount++;
+      const placedArr = appState.periodicGame.placedByLevel[activeLevelNum] || [];
+      if (selectedElementZ === targetSlotZ) {
+        soundSuccess();
+        classicGood++;
+        currentCombo++;
+        updateComboBadge();
+        placedArr.push(targetSlotZ);
+        appState.periodicGame.placedByLevel[activeLevelNum] = placedArr;
+        currentTrayElements = currentTrayElements.filter((e) => e[0] !== targetSlotZ);
+        selectedElementZ = null;
+        const lvlObj = PT_LEVELS.find((l) => l.id === activeLevelNum);
+        const total = RAW_ELEMENTS.filter(lvlObj.filter).length;
+        renderPeriodicTray();
+        renderPeriodicBoard(lvlObj, placedArr, total);
+        if (currentTrayElements.length === 0) {
+          const n = PT_NAMES[activeLevelNum];
+          completeClassicGameLevel(`Modern Periodic Table Block Mastery (Level ${activeLevelNum}: ${n[0]})`, `आधुनिक आवर्त सारणी ब्लॉक निपुणता (स्तर ${activeLevelNum}: ${n[1]})`);
+        } else saveState();
+      } else {
+        soundError();
+        classicWrong++;
+        currentCombo = 1;
+        updateComboBadge();
+        const b = $('pt-grid-board'); b.classList.remove('shake-anim'); void b.offsetWidth; b.classList.add('shake-anim');
+      }
+    }
+
+    /* =========================================================================
+       8. CLASSIC GAME #2: AUFBAU ORBITAL FILLER (Levels 1-5 + Level 6 Random 1-118)
+       ========================================================================= */
+    const AUFBAU_FIXED = {
+      1: { title: "Nitrogen (Z = 7)", hint: "हुंड के नियम के अनुसार 2p के तीनों कक्षकों में एक-एक इलेक्ट्रॉन भरें।", subshells: [{name:"1s", boxes:1, e:2}, {name:"2s", boxes:1, e:2}, {name:"2p", boxes:3, e:3}] },
+      2: { title: "Phosphorus (Z = 15)", hint: "[Ne] कोर के बाद 3s² 3p³ विन्यास भरें।", subshells: [{name:"3s", boxes:1, e:2}, {name:"3p", boxes:3, e:3}] },
+      3: { title: "Titanium (Z = 22)", hint: "[Ar] कोर के बाद 4s² 3d² भरें।", subshells: [{name:"4s", boxes:1, e:2}, {name:"3d", boxes:5, e:2}] },
+      4: { title: "Chromium Exception (Z = 24)", hint: "NCERT अपवाद! अर्ध-पूरित स्थायित्व के लिए 4s¹ 3d⁵ होता है।", subshells: [{name:"4s", boxes:1, e:1}, {name:"3d", boxes:5, e:5}] },
+      5: { title: "Copper Exception (Z = 29)", hint: "पूर्ण-पूरित 3d¹⁰ स्थायित्व के लिए 4s¹ 3d¹⁰ होता है!", subshells: [{name:"4s", boxes:1, e:1}, {name:"3d", boxes:5, e:10}] }
+    };
+    const AUF_FIXED_EN = {
+      1: 'Fill the fixed subshells of Nitrogen: 1s², 2s², 2p³.',
+      2: 'Fill the valence subshells of Phosphorus: 3s², 3p³.',
+      3: 'Fill the valence subshells of Titanium: 4s², 3d².',
+      4: 'NCERT exception: fill 4s¹ and 3d⁵ for Chromium.',
+      5: 'NCERT exception: fill 4s¹ and 3d¹⁰ for Copper.'
+    };
+
+    function generateValenceChallengeForZ(z) {
+      const el = RAW_ELEMENTS.find((e) => e[0] === z) || RAW_ELEMENTS[0];
+      const sym = el[1];
+      const exceptions = {
+        24: [{name:"4s",boxes:1,e:1},{name:"3d",boxes:5,e:5}],
+        29: [{name:"4s",boxes:1,e:1},{name:"3d",boxes:5,e:10}],
+        42: [{name:"5s",boxes:1,e:1},{name:"4d",boxes:5,e:5}],
+        47: [{name:"5s",boxes:1,e:1},{name:"4d",boxes:5,e:10}]
+      };
+      if (exceptions[z]) {
+        return { title: `🎲 Random Element: ${sym} (Z = ${z})`, hint: 'विशेष अपवाद विन्यास (Exception Element)! बाह्यतम कक्षक भरें:', hintEn: 'Special exception configuration (half-/fully-filled d stability)! Fill the outermost orbitals:', prompt: 'विशेष अपवाद विन्यास (Exception Element)! बाह्यतम कक्षक भरें:', promptEn: 'Exception element! Fill the outermost orbitals:', subshells: exceptions[z] };
+      }
+      const order = [
+        {name:"1s",cap:2,boxes:1},{name:"2s",cap:2,boxes:1},{name:"2p",cap:6,boxes:3},
+        {name:"3s",cap:2,boxes:1},{name:"3p",cap:6,boxes:3},{name:"4s",cap:2,boxes:1},
+        {name:"3d",cap:10,boxes:5},{name:"4p",cap:6,boxes:3},{name:"5s",cap:2,boxes:1},
+        {name:"4d",cap:10,boxes:5},{name:"5p",cap:6,boxes:3},{name:"6s",cap:2,boxes:1},
+        {name:"4f",cap:14,boxes:7},{name:"5d",cap:10,boxes:5},{name:"6p",cap:6,boxes:3},
+        {name:"7s",cap:2,boxes:1},{name:"5f",cap:14,boxes:7},{name:"6d",cap:10,boxes:5},{name:"7p",cap:6,boxes:3}
+      ];
+      let rem = z;
+      const filled = [];
+      for (const o of order) {
+        if (rem <= 0) break;
+        const take = Math.min(rem, o.cap);
+        filled.push({ name: o.name, boxes: o.boxes, e: take });
+        rem -= take;
+      }
+      return {
+        title: `🎲 Random 1–118: ${sym} (Z = ${z})`,
+        hint: `परमाणु क्रमांक Z = ${z} (${sym}) के संयोजी उपकोश (Valence Subshells) भरें:`,
+        hintEn: `Fill the last two (valence) subshells of Z = ${z} (${sym}) using the Aufbau order, Pauli's principle and Hund's rule.`,
+        prompt: `परमाणु क्रमांक Z = ${z} (${sym}) के संयोजी उपकोश (Valence Subshells) भरें:`,
+        promptEn: `Fill the valence subshells of Z = ${z} (${sym}):`,
+        subshells: filled.slice(-2)
+      };
+    }
+
+    let currentAufbauSpec = null;
+    let aufState = [];
+
+    function loadAufbauLevel(lvl) {
+      currentAufbauSpec = (lvl === 6) ? generateValenceChallengeForZ(Math.floor(Math.random() * 118) + 1) : AUFBAU_FIXED[lvl];
+      aufState = currentAufbauSpec.subshells.map((s) => Array(s.boxes).fill(0));
+    }
+
+    function renderAufbauBoxes() {
+      const area = $('auf-boxes-area');
+      area.innerHTML = '';
+      currentAufbauSpec.subshells.forEach((sub, sIdx) => {
+        const card = document.createElement('div');
+        card.className = 'subshell-card';
+        card.innerHTML = `<div style="font-size:.78rem; font-weight:700; color:#4D493C;">${sub.name} (${tr('Need', 'चाहिए')} ${sub.e} e⁻)</div>`;
+        const row = document.createElement('div');
+        row.className = 'orb-boxes-row';
+        aufState[sIdx].forEach((val, bIdx) => {
+          const box = document.createElement('div');
+          box.className = 'orb-box';
+          box.textContent = val === 1 ? '↑' : (val === 2 ? '↑↓' : '');
+          box.onclick = () => {
+            classicMovesCount++;
+            aufState[sIdx][bIdx] = (aufState[sIdx][bIdx] + 1) % 3;
+            playTone(540, 'sine', 0.05);
+            renderAufbauBoxes();
+          };
+          row.appendChild(box);
+        });
+        card.appendChild(row);
+        area.appendChild(card);
+      });
+    }
+
+    function verifyAufbauConfig() {
+      let ok = true;
+      currentAufbauSpec.subshells.forEach((sub, sIdx) => {
+        const sumUser = aufState[sIdx].reduce((a, b) => a + b, 0);
+        const expectedUnpaired = sub.e <= sub.boxes ? sub.e : (2 * sub.boxes - sub.e);
+        const userUnpaired = aufState[sIdx].filter((v) => v === 1).length;
+        if (sumUser !== sub.e || userUnpaired !== expectedUnpaired) ok = false;
+      });
+      if (ok) {
+        classicGood++;
+        currentCombo++;
+        updateComboBadge();
+        if (activeLevelNum === 6) appState.aufbauRandomClears = (appState.aufbauRandomClears || 0) + 1;
+        completeClassicGameLevel(`Aufbau, Pauli & Hund's Rule: ${currentAufbauSpec.title}`, `ऑफबाऊ, पाउली व हुंड का नियम: ${currentAufbauSpec.title}`);
+      } else {
+        soundError();
+        classicWrong++;
+        currentCombo = 1;
+        updateComboBadge();
+        adjustXP(-10, tr('❌ Wrong!', '❌ गलत!'));
+        toast('Check Hund\'s rule & the electron count!', 'हुंड का नियम व इलेक्ट्रॉन संख्या जाँचें!');
+        const el = $('arena-aufbau');
+        el.classList.remove('shake-anim'); void el.offsetWidth; el.classList.add('shake-anim');
+      }
+    }
+
+    /* =========================================================================
+       9. HIGH-DPI INTERACTIVE GRAPH VISUALIZER (warm paper, marker curves)
+       ========================================================================= */
+    let touchCrosshairX = null;
+
+    function drawLabGraph() {
+      const canvas = $('gas-canvas');
+      if (!canvas) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const W = rect.width || 350;
+      const H = rect.height || 240;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+
+      const ctx = canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const mode = $('graph-mode-select').value;
+      const T = parseInt($('temp-slider').value, 10);
+      const descEl = $('graph-desc-hindi');
+      const hi = L() === 'hi';
+      const AX = { boyle: [['Volume V', 'आयतन V'], ['Pressure P', 'दाब P']], maxwell: [['Speed u', 'चाल u'], ['Fraction of molecules', 'अणुओं का अंश']], radial: [['Distance r', 'दूरी r'], ['4πr²R²', '4πr²R²']], arrhenius: [['Reaction coordinate', 'अभिक्रिया निर्देशांक'], ['Energy', 'ऊर्जा']] }[mode];
+
+      if (mode === 'boyle') {
+        $('param-label').textContent = tr('Temperature T', 'तापमान T');
+        $('temp-val').textContent = T + ' K';
+        descEl.innerHTML = tr("Boyle's Law: at constant temperature $P \\propto 1/V$. The dashed grey line is the 300 K reference curve.", "बॉयल का नियम: स्थिर तापमान पर $P \\propto 1/V$। धूसर रेखा (Dashed) 300K संदर्भ वक्र दिखाती है।");
+      } else if (mode === 'maxwell') {
+        $('param-label').textContent = tr('Gas Temperature T', 'गैस का तापमान T');
+        $('temp-val').textContent = T + ' K';
+        descEl.innerHTML = tr('Maxwell speed distribution: as temperature rises the peak ($u_{mp}$) shifts right and flattens ($u_{mp} < u_{avg} < u_{rms}$).', 'मैक्सवेल गति वितरण: तापमान बढ़ने पर वक्र का शिखर ($u_{mp}$) दाईं ओर खिसकता है और चपटा हो जाता है ($u_{mp} < u_{avg} < u_{rms}$)।');
+      } else if (mode === 'radial') {
+        $('param-label').textContent = tr('Nuclear Charge Scale', 'नाभिकीय आवेश पैमाना');
+        $('temp-val').textContent = (T / 100).toFixed(1);
+        descEl.innerHTML = tr('Radial probability density of the 2s orbital ($4\\pi r^2 R^2$): where the curve touches the x-axis there is a radial node ($n-l-1$).', '2s कक्षक का त्रिज्य प्रायिकता घनत्व ($4\\pi r^2 R^2$): जहाँ वक्र X-अक्ष को छूता है वहाँ Radial Node ($n-l-1$) होता है।');
+      } else {
+        $('param-label').textContent = tr('Catalyst Efficiency', 'उत्प्रेरक दक्षता');
+        $('temp-val').textContent = Math.round((T - 200) / 4) + '%';
+        descEl.innerHTML = tr('A catalyst lowers the activation energy ($E_a$) by giving a new path, but $\\Delta H$ does not change.', 'उत्प्रेरक (Catalyst) सक्रियण ऊर्जा ($E_a$) को कम करके नया पथ प्रदान करता है, पर $\\Delta H$ नहीं बदलता।');
+      }
+      renderMath(descEl);
+
+      const PAD_L = 44, PAD_B = 30, PAD_T = 16, PAD_R = 14;
+      const baseY = H - PAD_B;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#FDF9EE';
+      ctx.fillRect(0, 0, W, H);
+
+      /* notebook grid */
+      ctx.strokeStyle = '#EFEAD8';
+      ctx.lineWidth = 1;
+      for (let gx = PAD_L; gx < W - PAD_R; gx += 35) { ctx.beginPath(); ctx.moveTo(gx + .5, PAD_T); ctx.lineTo(gx + .5, baseY); ctx.stroke(); }
+      for (let gy = baseY; gy > PAD_T; gy -= 32) { ctx.beginPath(); ctx.moveTo(PAD_L, gy + .5); ctx.lineTo(W - PAD_R, gy + .5); ctx.stroke(); }
+
+      /* ink axes */
+      ctx.strokeStyle = '#1E1E1E';
+      ctx.lineWidth = 2.5;
+      ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(PAD_L, PAD_T - 2); ctx.lineTo(PAD_L, baseY); ctx.lineTo(W - PAD_R + 2, baseY);
+      ctx.stroke();
+      ctx.fillStyle = '#111111';
+      ctx.font = hi ? '600 15px Teko, "Noto Sans Devanagari", sans-serif' : '600 11px Fredoka, "Patrick Hand", sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(tr(AX[0][0], AX[0][1]) + ' →', W - PAD_R, H - 8);
+      ctx.save(); ctx.translate(13, PAD_T + 4); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'right';
+      ctx.fillText(tr(AX[1][0], AX[1][1]) + ' →', 0, 0); ctx.restore();
+
+      const evalCurveY = (xPx, tempVal) => {
+        const u = (xPx - 42) / 36;
+        if (mode === 'boyle') return (tempVal * 0.45) / (u + 0.4);
+        if (mode === 'maxwell') { const a = 340 / tempVal; return 210 * a * u * u * Math.exp(-a * u * u * 0.35); }
+        if (mode === 'radial') { const r = u * (tempVal / 350); return 52 * r * r * Math.pow(2.1 - r, 2) * Math.exp(-r * 0.72); }
+        const peak = 145 - ((tempVal - 200) * 0.22);
+        return 30 + peak * Math.exp(-Math.pow(u - 3.6, 2) * 0.65);
+      };
+      const yOf = (x, tv) => baseY - Math.min(H - PAD_B - PAD_T - 4, Math.max(0, evalCurveY(x, tv)));
+
+      /* dashed reference curve (300 K / uncatalysed) */
+      ctx.save();
+      ctx.setLineDash([6, 5]);
+      ctx.strokeStyle = '#4D493C';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = PAD_L + 2; x <= W - PAD_R - 2; x += 3) { const y = yOf(x, 300); if (x === PAD_L + 2) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+      ctx.stroke();
+      ctx.restore();
+
+      const strokeCol = mode === 'boyle' ? '#1F6FEB' : (mode === 'maxwell' ? '#1E8E3E' : (mode === 'radial' ? '#D93025' : '#B7791F'));
+      const path = () => {
+        ctx.beginPath();
+        for (let x = PAD_L + 2; x <= W - PAD_R - 2; x += 2) { const y = yOf(x, T); if (x === PAD_L + 2) ctx.moveTo(x, y); else ctx.lineTo(x, y); }
+      };
+      /* soft marker fill under the curve */
+      path();
+      ctx.lineTo(W - PAD_R - 2, baseY); ctx.lineTo(PAD_L + 2, baseY); ctx.closePath();
+      ctx.fillStyle = strokeCol + '26';
+      ctx.fill();
+      /* bold marker curve with ink outline */
+      path(); ctx.strokeStyle = '#1E1E1E'; ctx.lineWidth = 7; ctx.stroke();
+      path(); ctx.strokeStyle = strokeCol; ctx.lineWidth = 3.5; ctx.stroke();
+
+      if (touchCrosshairX && touchCrosshairX >= PAD_L && touchCrosshairX <= W - PAD_R) {
+        const yVal = evalCurveY(touchCrosshairX, T);
+        const yPx = yOf(touchCrosshairX, T);
+        ctx.save();
+        ctx.setLineDash([5, 4]); ctx.strokeStyle = '#1E1E1E'; ctx.lineWidth = 1.8;
+        ctx.beginPath(); ctx.moveTo(touchCrosshairX, PAD_T); ctx.lineTo(touchCrosshairX, baseY); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(PAD_L, yPx); ctx.lineTo(touchCrosshairX, yPx); ctx.stroke();
+        ctx.restore();
+        ctx.fillStyle = '#FFD95A'; ctx.strokeStyle = '#1E1E1E'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(touchCrosshairX, yPx, 6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        $('graph-readout').textContent = `X = ${((touchCrosshairX - 42) / 28).toFixed(2)} | Y = ${yVal.toFixed(1)}`;
+      } else {
+        $('graph-readout').textContent = tr('Touch graph to inspect', 'जाँचने के लिए ग्राफ़ छुएँ');
+      }
+    }
+
+    function initGraphTouchInspect() {
+      const canvas = $('gas-canvas');
+      const handle = (clientX) => { const rect = canvas.getBoundingClientRect(); touchCrosshairX = clientX - rect.left; drawLabGraph(); };
+      let down = false;
+      canvas.addEventListener('pointerdown', (e) => { down = true; try { canvas.setPointerCapture(e.pointerId); } catch (_) {} handle(e.clientX); });
+      canvas.addEventListener('pointermove', (e) => { if (down) handle(e.clientX); });
+      const up = () => { down = false; };
+      canvas.addEventListener('pointerup', up);
+      canvas.addEventListener('pointercancel', up);
+    }
+
+    function runChemCalc() {
+      const n = parseFloat($('calc-moles').value) || 0;
+      const v = parseFloat($('calc-vol').value) || 1;
+      const nf = Math.max(1, parseFloat($('calc-nf').value) || 1);
+      const Mv = n / v;
+      const N = Mv * nf;
+      const pH = N > 0 ? Math.max(0, -Math.log10(N)).toFixed(2) : 'N/A';
+      $('calc-output').innerHTML = tr(
+        `Molarity (M) = ${Mv.toFixed(3)} mol/L<br>Normality (N = M × n-factor) = ${N.toFixed(3)} eq/L<br>Strong acid pH = ${pH}`,
+        `मोलरता (M) = ${Mv.toFixed(3)} mol/L<br>नॉर्मलता (N = M × n-गुणांक) = ${N.toFixed(3)} eq/L<br>प्रबल अम्ल pH = ${pH}`);
+    }
+
+    /* =========================================================================
+       10. CHAPTER-WISE NCERT VAULT LISTING (bilingual, KaTeX formulas)
+       ========================================================================= */
+    const NCERT_VAULT_DATA = [
+      { ch: "ch1", topic: "Mole Concept & Concentration Terms", title: "Molarity, Molality & Mole Fraction", hindi: "तापमान से स्वतंत्र सांद्रता पद: मोललता ($m$), मोल अंश ($\\chi$) और द्रव्यमान प्रतिशत (% w/w)।", en: "Temperature-independent concentration terms: molality ($m$), mole fraction ($\\chi$) and mass percent (% w/w).", titleHi: "मोलरता, मोललता और मोल अंश", formula: "$$M = \\frac{n}{V_L}, \\quad m = \\frac{n}{W_{\\text{solvent(kg)}}}, \\quad \\chi_A = \\frac{n_A}{n_A + n_B}$$" },
+      { ch: "ch1", topic: "Stoichiometry & Laws", title: "Antoine Lavoisier & Proust Laws", hindi: "द्रव्यमान संरक्षण का नियम (Lavoisier) और स्थिर अनुपात का नियम (Joseph Proust)।", en: "Law of conservation of mass (Lavoisier) and law of constant proportions (Joseph Proust).", titleHi: "लवॉज़िए व प्राउस्ट के नियम", formula: "$$\\text{Total Mass}_{\\text{reactants}} = \\text{Total Mass}_{\\text{products}}$$" },
+      { ch: "ch2", topic: "Bohr Model & Hydrogen Spectrum", title: "Niels Bohr Radius, Velocity & Energy", hindi: "हाइड्रोजन सदृश प्रजातियों ($\\text{He}^+, \\text{Li}^{2+}$) के लिए त्रिज्या और ऊर्जा के सूत्र:", en: "Radius and energy formulas for hydrogen-like species ($\\text{He}^+, \\text{Li}^{2+}$):", titleHi: "नील्स बोर: त्रिज्या, वेग व ऊर्जा", formula: "$$r_n = 0.529 \\frac{n^2}{Z}\\text{ \\AA}, \\quad E_n = -13.6 \\frac{Z^2}{n^2}\\text{ eV}$$" },
+      { ch: "ch2", topic: "Dual Nature & Quantum", title: "de Broglie Wavelength & Photoelectric Effect", hindi: "डी-ब्रोग्ली तरंगदैर्ध्य और आइंस्टीन का प्रकाश विद्युत समीकरण:", en: "de Broglie wavelength and Einstein's photoelectric equation:", titleHi: "डी-ब्रोग्ली तरंगदैर्ध्य व प्रकाश-विद्युत प्रभाव", formula: "$$\\lambda = \\frac{h}{mv} = \\frac{h}{\\sqrt{2m(\\text{KE})}}, \\quad h\\nu = h\\nu_0 + \\text{KE}_{\\max}$$" },
+      { ch: "ch3", topic: "Periodic Trends & Exceptions", title: "Moseley's Law & All NCERT Exceptions", hindi: "आयनन एन्थैल्पी अपवाद ($\\text{Be}>\\text{B}, \\text{N}>\\text{O}$), इलेक्ट्रॉन लब्धि ($\\text{Cl}>\\text{F}$) और उभयधर्मी ऑक्साइड ($\\text{Al}_2\\text{O}_3, \\text{ZnO}, \\text{BeO}, \\text{SnO}, \\text{PbO}$)।", en: "Ionisation enthalpy exceptions ($\\text{Be}>\\text{B}, \\text{N}>\\text{O}$), electron gain enthalpy ($\\text{Cl}>\\text{F}$) and amphoteric oxides ($\\text{Al}_2\\text{O}_3, \\text{ZnO}, \\text{BeO}, \\text{SnO}, \\text{PbO}$).", titleHi: "मोज़ले का नियम व सभी NCERT अपवाद", formula: "$$\\sqrt{\\nu} = a(Z - b) \\quad | \\quad IE_1: \\text{B} < \\text{Be} \\;\\&\\; \\text{O} < \\text{N}$$" },
+      { ch: "ch4", topic: "Hybridization & MOT", title: "Steric Number & Bond Order Formula", hindi: "आबंध कोटि (Bond Order) जितनी अधिक होगी, बंध ऊर्जा उतनी अधिक और बंध लंबाई उतनी कम होगी।", en: "The higher the bond order, the higher the bond energy and the shorter the bond length.", titleHi: "त्रिविम संख्या व आबंध कोटि सूत्र", formula: "$$\\text{Bond Order} = \\frac{N_b - N_a}{2}, \\quad \\text{Steric No.} = \\frac{1}{2}(V + M - C + A)$$" },
+      { ch: "ch5", topic: "First & Second Law of Thermodynamics", title: "Enthalpy, Entropy & Kp-Kc Relation", hindi: "स्थिर दाब और स्थिर आयतन पर ऊष्मा का संबंध तथा साम्य स्थिरांक समीकरण:", en: "Relation between heat at constant pressure and constant volume, and the equilibrium-constant relation:", titleHi: "एन्थैल्पी, एन्ट्रॉपी व Kp–Kc संबंध", formula: "$$\\Delta H = \\Delta U + \\Delta n_g RT, \\quad K_p = K_c(RT)^{\\Delta n_g}$$" },
+      { ch: "ch6", topic: "Redox & GOC Electronic Effects", title: "Carbocation Stability & Acidic Strength", hindi: "कार्बोकैटायन स्थायित्व: अनुनाद (Resonance) > अतिसंयुग्मन ($\\alpha$-H) > प्रेरणिक प्रभाव ($+I$)।", en: "Carbocation stability: resonance > hyperconjugation ($\\alpha$-H) > inductive effect ($+I$).", titleHi: "कार्बोकैटायन स्थायित्व व अम्लीय प्रबलता", formula: "$$\\text{Stability} \\propto +M, +H, +I \\quad | \\quad \\text{Acidity} \\propto -M, -I$$" }
+    ];
+
+    function renderVaultList() {
+      const sel = $('vault-chapter-select').value;
+      const box = $('vault-cards-container');
+      box.innerHTML = '';
+      const list = sel === 'all' ? NCERT_VAULT_DATA : NCERT_VAULT_DATA.filter((x) => x.ch === sel);
+      const chPastel = { ch1: '#CDEBCB', ch2: '#CFE3FF', ch3: '#FFD95A', ch4: '#E5D4FF', ch5: '#F8D9B8', ch6: '#FF9B90' };
+      list.forEach((item) => {
+        const card = document.createElement('div');
+        card.className = 'vault-card';
+        card.innerHTML = `
+          <span class="tag" style="background:${chPastel[item.ch] || '#CFE3FF'};">${tr('CH', 'अध्याय')} ${item.ch.replace('ch', '')} • ${item.topic}</span>
+          <div class="vault-title">${tr(item.title, item.titleHi)}</div>
+          <p style="margin-top:6px; line-height:1.5;">${tr(item.en, item.hindi)}</p>
+          <div class="vault-formula">${item.formula}</div>`;
+        box.appendChild(card);
+      });
+      renderMath(box);
+    }
+
+    /* =========================================================================
+       11. NAVIGATION & APP INIT
+       ========================================================================= */
+    function switchTab(tabId, btnEl) {
+      playTone(540, 'sine', 0.06);
+      if (tabId !== 'games') { stopActiveGame(); }
+      document.querySelectorAll('.view-section').forEach((s) => s.classList.remove('active'));
+      $('view-' + tabId).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach((b) => b.classList.remove('active'));
+      const btn = btnEl || document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+      if (btn) btn.classList.add('active');
+      window.scrollTo(0, 0);
+
+      if (tabId === 'games') renderGamesSquareHub();
+      if (tabId === 'lab') setTimeout(drawLabGraph, 50);
+      if (tabId === 'library') renderVaultList();
+      renderMath($('view-' + tabId));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      appliedLang = L();
+      document.documentElement.lang = appliedLang;
+      document.body.classList.toggle('lang-hi', appliedLang === 'hi');
+      applyStaticLang(document.body);
+      updateHeaderUI();
+      loadFlashcardDeck();
+      initFlashcardDrag();
+      renderGamesSquareHub();
+      initGraphTouchInspect();
+      runChemCalc();
+      renderVaultList();
+      $('hint-btn').innerHTML = BULB_SVG;
+      $('info-btn').onclick = () => { playTone(560, 'sine', 0.06); openClassicInstr(false); };
+      $('hint-btn').onclick = openClassicHint;
+      window.addEventListener('resize', () => { if ($('view-lab').classList.contains('active')) drawLabGraph(); });
+      setTimeout(() => renderMath(document.body), 400);
+
+      setTimeout(() => {
+        const splash = $('splash-screen');
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+        if (!appState.user.loggedIn) $('login-modal').style.display = 'flex';
+      }, 1900);
+    });
+  </script>
+</body>
+</html>
