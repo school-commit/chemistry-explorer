@@ -91,6 +91,60 @@ jobs:
             fi
           fi
 
+      - name: Prepare Widget Resources (background images + safety fixes)
+        run: |
+          MAIN="android/app/src/main"
+          RES="$MAIN/res"
+          LAYOUT="$RES/layout/streak_widget_layout.xml"
+
+          if [ ! -f "$LAYOUT" ]; then
+            echo "Widget layout nahi mila, is step ko skip kar raha hu"
+            exit 0
+          fi
+
+          # A) Widget background photos: www/assets/images/widget1.jpg, widget2.jpg
+          #    -> res/drawable-nodpi/widget_bg_1.jpg, widget_bg_2.jpg (max 900px, taaki widget heavy na ho)
+          mkdir -p "$RES/drawable-nodpi"
+          for n in 1 2; do
+            SRC="www/assets/images/widget$n.jpg"
+            DST="$RES/drawable-nodpi/widget_bg_$n.jpg"
+            if [ -f "$SRC" ]; then
+              if command -v convert >/dev/null 2>&1; then
+                convert "$SRC" -auto-orient -resize '900x900>' -strip -quality 85 "$DST" || cp "$SRC" "$DST"
+              else
+                cp "$SRC" "$DST"
+              fi
+              echo "Created $DST"
+            else
+              echo "$SRC nahi mila -> widget default dark background use karega"
+            fi
+          done
+
+          # B) Safety net: agar purani layout file repo me reh gayi ho to uski galtiyan yahi theek kar do
+          #    "space_between" CSS ki value hai, Android gravity me valid nahi
+          sed -i -E 's/"(space_between|space_around|space_evenly)"/"center_vertical"/g' "$LAYOUT"
+
+          #    Jo @drawable / R.drawable use ho rahe hain par exist nahi karte unka placeholder bana do
+          mkdir -p "$RES/drawable"
+          cat > /tmp/placeholder_bg.xml <<'XML'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <gradient android:startColor="#FF1A1A2E" android:endColor="#FF16213E" android:angle="135" />
+              <corners android:radius="20dp" />
+          </shape>
+          XML
+
+          NAMES=$( { grep -rhoE '@drawable/[A-Za-z0-9_]+' "$RES/layout" "$RES/xml" 2>/dev/null | sed 's#@drawable/##'; grep -rhoE 'R\.drawable\.[A-Za-z0-9_]+' "$MAIN/java" 2>/dev/null | sed 's#R\.drawable\.##'; } | sort -u || true )
+
+          for n in $NAMES; do
+            if ! ls "$RES"/drawable*/"$n".* >/dev/null 2>&1; then
+              echo "Missing drawable '$n' -> placeholder bana raha hu"
+              cp /tmp/placeholder_bg.xml "$RES/drawable/$n.xml"
+            fi
+          done
+
+          echo "----- Drawables -----"
+          ls -la "$RES"/drawable*/ 2>/dev/null || true
+
       - name: Build Debug APK with Gradle
         run: |
           cd android
@@ -102,3 +156,4 @@ jobs:
         with:
           name: Chemistry-Explorer-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
