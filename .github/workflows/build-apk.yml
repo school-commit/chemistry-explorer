@@ -27,48 +27,67 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Save Native Widget Files (before android folder is recreated)
+        run: |
+          mkdir -p /tmp/native_widget
+          SRC="android/app/src/main"
+          [ -f "$SRC/java/com/adityamaurya/chemexplorer/StreakWidgetProvider.java" ] && cp "$SRC/java/com/adityamaurya/chemexplorer/StreakWidgetProvider.java" /tmp/native_widget/ || echo "StreakWidgetProvider.java not found"
+          [ -f "$SRC/res/layout/streak_widget_layout.xml" ] && cp "$SRC/res/layout/streak_widget_layout.xml" /tmp/native_widget/ || echo "streak_widget_layout.xml not found"
+          [ -f "$SRC/res/xml/streak_widget_info.xml" ] && cp "$SRC/res/xml/streak_widget_info.xml" /tmp/native_widget/ || echo "streak_widget_info.xml not found"
+          ls -la /tmp/native_widget
+
       - name: Clean and Fresh Android Add & Sync
         run: |
-          # Remove any old broken android folder from git tracking
           rm -rf android
           npx cap add android
           npx cap sync android
 
       - name: Setup Launcher Icon and Native Widget Files Safely
         run: |
-          if [ -d "android/app/src/main" ]; then
-            # Copy App Logo if present
-            if [ -f "www/assets/images/logo.png" ]; then
-              for dir in android/app/src/main/res/mipmap-*; do
-                mkdir -p "$dir"
-                cp www/assets/images/logo.png "$dir/ic_launcher.png" || true
-                cp www/assets/images/logo.png "$dir/ic_launcher_round.png" || true
-                cp www/assets/images/logo.png "$dir/ic_launcher_foreground.png" || true
-              done
-            fi
+          MAIN="android/app/src/main"
+          RES="$MAIN/res"
 
-            # Safely register widget in AndroidManifest.xml if present and not registered
-            MANIFEST="android/app/src/main/AndroidManifest.xml"
-            if [ -f "$MANIFEST" ] && ! grep -q "StreakWidgetProvider" "$MANIFEST"; then
-              python3 -c '
-              path = "android/app/src/main/AndroidManifest.xml"
-              with open(path, "r") as f:
-                  content = f.read()
+          # 1) Launcher icon (only real density folders; remove adaptive-icon xml so the png is used as-is)
+          if [ -f "www/assets/images/logo.png" ]; then
+            rm -rf "$RES"/mipmap-anydpi-v26
+            for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+              mkdir -p "$RES/mipmap-$d"
+              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher.png"
+              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher_round.png"
+              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher_foreground.png"
+            done
+          fi
 
-              receiver = """
-                  <receiver android:name=\".StreakWidgetProvider\" android:exported=\"false\">
-                      <intent-filter>
-                          <action android:name=\"android.appwidget.action.APPWIDGET_UPDATE\" />
-                      </intent-filter>
-                      <meta-data android:name=\"android.appwidget.provider\" android:resource=\"@xml/streak_widget_info\" />
-                  </receiver>
-              </application>
-              """
-              if "</application>" in content and "StreakWidgetProvider" not in content:
-                  content = content.replace("</application>", receiver)
-                  with open(path, "w") as f:
-                      f.write(content)
-              '
+          # 2) Restore widget files
+          if [ -f /tmp/native_widget/StreakWidgetProvider.java ]; then
+            mkdir -p "$MAIN/java/com/adityamaurya/chemexplorer" "$RES/layout" "$RES/xml"
+            cp /tmp/native_widget/StreakWidgetProvider.java "$MAIN/java/com/adityamaurya/chemexplorer/"
+            cp /tmp/native_widget/streak_widget_layout.xml "$RES/layout/"
+            cp /tmp/native_widget/streak_widget_info.xml "$RES/xml/"
+
+            # 3) Register the receiver in AndroidManifest.xml (once)
+            MANIFEST="$MAIN/AndroidManifest.xml"
+            if ! grep -q "StreakWidgetProvider" "$MANIFEST"; then
+              python3 - <<'PY'
+          path = "android/app/src/main/AndroidManifest.xml"
+          with open(path, "r", encoding="utf-8") as f:
+              content = f.read()
+
+          receiver = (
+              '    <receiver android:name="com.adityamaurya.chemexplorer.StreakWidgetProvider" android:exported="false">\n'
+              '        <intent-filter>\n'
+              '            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />\n'
+              '        </intent-filter>\n'
+              '        <meta-data android:name="android.appwidget.provider" android:resource="@xml/streak_widget_info" />\n'
+              '    </receiver>\n'
+              '</application>'
+          )
+          if "</application>" in content:
+              content = content.replace("</application>", receiver, 1)
+              with open(path, "w", encoding="utf-8") as f:
+                  f.write(content)
+              print("Widget receiver registered")
+          PY
             fi
           fi
 
