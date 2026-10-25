@@ -28,7 +28,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="12dp"
-        android:gravity="space_between">
+        android:gravity="center_vertical">
 
         <!-- TOP ROW: XP Pill (Left) + App Tag (Right) -->
         <LinearLayout
