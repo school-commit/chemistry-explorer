@@ -1,84 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="12dp"
-    android:background="@drawable/widget_bg_selector"
-    android:gravity="center">
+    android:background="#161B22">
+
+    <!-- Optional photo background (widget_bg_1 / widget_bg_2). Java makes it visible only if chosen -->
+    <ImageView
+        android:id="@+id/widget_bg_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:tint="#FF808080"
+        android:tintMode="multiply"
+        android:contentDescription="@null"
+        android:visibility="gone" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="space_between"
-        android:layout_marginBottom="4dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:gravity="center">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
+
+            <TextView
+                android:id="@+id/widget_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="CHEMISTRY EXPLORER"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:shadowColor="#000000"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2" />
+
+            <TextView
+                android:id="@+id/widget_xp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&#x26A1; 0 XP"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#CDEBCB"
+                android:background="#21262D"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="&#x1F525;"
+                android:textSize="26sp"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/widget_streak_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1 Day Streak"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:shadowColor="#000000"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="3" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/widget_title"
+            android:id="@+id/widget_subtext"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CHEMISTRY EXPLORER"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:shadowColor="#000000"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"/>
+            android:text="Tap to open JEE Chemistry Lab"
+            android:textSize="10sp"
+            android:textColor="#E6EDF3"
+            android:alpha="0.86" />
 
-        <TextView
-            android:id="@+id/widget_xp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⚡ 0 XP"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:textColor="#CDEBCB"
-            android:background="#21262D"
-            android:paddingStart="6dp"
-            android:paddingEnd="6dp"
-            android:paddingTop="2dp"
-            android:paddingBottom="2dp"/>
     </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="2dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔥"
-            android:textSize="26sp"
-            android:layout_marginEnd="6dp"/>
-
-        <TextView
-            android:id="@+id/widget_streak_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="1 Day Streak"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:shadowColor="#000000"
-            android:shadowDx="2"
-            android:shadowDy="2"
-            android:shadowRadius="3"/>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/widget_subtext"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Tap to open JEE Chemistry Lab"
-        android:textSize="10sp"
-        android:textColor="#E6EDF3"
-        android:alpha="0.86"/>
-
-</LinearLayout>
+</FrameLayout>
