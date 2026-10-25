@@ -3,17 +3,24 @@
     android:id="@+id/widget_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#161B22">
+    android:background="@drawable/widget_card_frame"
+    android:padding="3dp">
 
-    <!-- Optional photo background (widget_bg_1 / widget_bg_2). Java makes it visible only if chosen -->
+    <!-- Full-Brightness Selected Background Image (widget1..widget6) -->
     <ImageView
         android:id="@+id/widget_bg_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
-        android:tint="#FF808080"
-        android:tintMode="multiply"
         android:contentDescription="@null"
+        android:visibility="gone" />
+
+    <!-- Very light bottom gradient (only 18% opacity) so image stays bright & text stays crisp -->
+    <FrameLayout
+        android:id="@+id/widget_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#26000000"
         android:visibility="gone" />
 
     <LinearLayout
@@ -21,83 +28,125 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:padding="12dp"
-        android:gravity="center">
+        android:gravity="space_between">
 
+        <!-- TOP ROW: XP Pill (Left) + App Tag (Right) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginBottom="4dp">
-
-            <TextView
-                android:id="@+id/widget_title"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="CHEMISTRY EXPLORER"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:shadowColor="#000000"
-                android:shadowDx="1"
-                android:shadowDy="1"
-                android:shadowRadius="2" />
+            android:gravity="center_vertical">
 
             <TextView
                 android:id="@+id/widget_xp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="&#x26A1; 0 XP"
+                android:text="⚡ 0 XP"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#111111"
+                android:background="@drawable/widget_xp_pill"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/widget_bonus_tag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎯 +100 XP"
                 android:textSize="11sp"
                 android:textStyle="bold"
-                android:textColor="#CDEBCB"
-                android:background="#21262D"
-                android:paddingStart="6dp"
-                android:paddingEnd="6dp"
-                android:paddingTop="2dp"
-                android:paddingBottom="2dp" />
+                android:textColor="#111111"
+                android:background="@drawable/widget_yellow_pill"
+                android:paddingStart="9dp"
+                android:paddingEnd="9dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp" />
         </LinearLayout>
 
+        <!-- CENTER: Real Fire Emoji 🔥 + X Day Streak! -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:gravity="center"
             android:layout_marginTop="2dp"
             android:layout_marginBottom="2dp">
 
             <TextView
+                android:id="@+id/widget_fire_emoji"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="&#x1F525;"
-                android:textSize="26sp"
-                android:layout_marginEnd="6dp" />
+                android:text="🔥"
+                android:textSize="38sp"
+                android:shadowColor="#80000000"
+                android:shadowDx="0"
+                android:shadowDy="3"
+                android:shadowRadius="4" />
 
             <TextView
                 android:id="@+id/widget_streak_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="1 Day Streak"
+                android:text="🔥 0 Day Streak!"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
-                android:shadowColor="#000000"
-                android:shadowDx="2"
-                android:shadowDy="2"
-                android:shadowRadius="3" />
+                android:textColor="#111111"
+                android:shadowColor="#CCFFFFFF"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="2" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/widget_subtext"
-            android:layout_width="wrap_content"
+        <!-- BOTTOM: Daily 0/10 Flashcards + Green Progress Bar -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tap to open JEE Chemistry Lab"
-            android:textSize="10sp"
-            android:textColor="#E6EDF3"
-            android:alpha="0.86" />
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/widget_daily_text"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="📇 0 / 10 Daily Flashcards"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#111111" />
+
+                <TextView
+                    android:id="@+id/widget_subtext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tap to study ▶"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:textColor="#111111" />
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/widget_progress_bar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:max="10"
+                android:progress="0"
+                android:progressDrawable="@drawable/widget_progress_draw" />
+        </LinearLayout>
 
     </LinearLayout>
 </FrameLayout>
