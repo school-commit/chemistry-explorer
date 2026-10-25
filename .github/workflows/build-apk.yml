@@ -32,38 +32,43 @@ jobs:
           npx cap add android || true
           npx cap sync android
 
-      - name: Setup Launcher Icon and Native Widget Files
+      - name: Setup Launcher Icon and Native Widget Files Safely
         run: |
-          # Copy App Logo
-          if [ -f "www/assets/images/logo.png" ]; then
-            for dir in android/app/src/main/res/mipmap-*; do
-              mkdir -p "$dir"
-              cp www/assets/images/logo.png "$dir/ic_launcher.png" || true
-              cp www/assets/images/logo.png "$dir/ic_launcher_round.png" || true
-              cp www/assets/images/logo.png "$dir/ic_launcher_foreground.png" || true
-            done
-          fi
+          # Ensure android platform directory exists
+          if [ -d "android/app/src/main" ]; then
+            # Copy App Logo if present
+            if [ -f "www/assets/images/logo.png" ]; then
+              for dir in android/app/src/main/res/mipmap-*; do
+                mkdir -p "$dir"
+                cp www/assets/images/logo.png "$dir/ic_launcher.png" || true
+                cp www/assets/images/logo.png "$dir/ic_launcher_round.png" || true
+                cp www/assets/images/logo.png "$dir/ic_launcher_foreground.png" || true
+              done
+            fi
 
-          # Register Widget in AndroidManifest.xml if not already present
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          if ! grep -q "StreakWidgetProvider" "$MANIFEST"; then
-            python3 -c '
-            with open("android/app/src/main/AndroidManifest.xml", "r") as f:
-                content = f.read()
+            # Safely register widget in AndroidManifest.xml if present and not registered
+            MANIFEST="android/app/src/main/AndroidManifest.xml"
+            if [ -f "$MANIFEST" ] && ! grep -q "StreakWidgetProvider" "$MANIFEST"; then
+              python3 -c '
+              path = "android/app/src/main/AndroidManifest.xml"
+              with open(path, "r") as f:
+                  content = f.read()
 
-            receiver = """
-            <receiver android:name=\".StreakWidgetProvider\" android:exported=\"false\">
-                <intent-filter>
-                    <action android:name=\"android.appwidget.action.APPWIDGET_UPDATE\" />
-                </intent-filter>
-                <meta-data android:name=\"android.appwidget.provider\" android:resource=\"@xml/streak_widget_info\" />
-            </receiver>
-            </application>
-            """
-            content = content.replace("</application>", receiver)
-            with open("android/app/src/main/AndroidManifest.xml", "w") as f:
-                f.write(content)
-            '
+              receiver = """
+                  <receiver android:name=\".StreakWidgetProvider\" android:exported=\"false\">
+                      <intent-filter>
+                          <action android:name=\"android.appwidget.action.APPWIDGET_UPDATE\" />
+                      </intent-filter>
+                      <meta-data android:name=\"android.appwidget.provider\" android:resource=\"@xml/streak_widget_info\" />
+                  </receiver>
+              </application>
+              """
+              if "</application>" in content and "StreakWidgetProvider" not in content:
+                  content = content.replace("</application>", receiver)
+                  with open(path, "w") as f:
+                      f.write(content)
+              '
+            fi
           fi
 
       - name: Build Debug APK with Gradle
