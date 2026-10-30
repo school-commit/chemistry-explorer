@@ -1,0 +1,484 @@
+name: Build Android Release APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Auto-Link Flashcards, Vault, Fonts & QR into www/
+        run: |
+          mkdir -p www/assets/images www/assets/fonts
+
+          # 1. Copy root-level flashcards and vault scripts into www/
+          for f in fc-ch*.js fc_ch*.js vault-part*.js vault_part*.js; do
+            if [ -f "$f" ]; then
+              cp "$f" "www/$f"
+              echo "Moved $f to www/"
+            fi
+          done
+
+          # 2. Safety copy for qr.jpg
+          if [ -f "qr.jpg" ]; then
+            cp "qr.jpg" "www/assets/images/qr.jpg"
+            echo "Copied qr.jpg to www/assets/images/"
+          fi
+
+          # 3. Safety copy for fonts
+          for font in *.ttf fonts/*.ttf; do
+            if [ -f "$font" ]; then
+              cp "$font" "www/assets/fonts/"
+              echo "Copied $font to www/assets/fonts/"
+            fi
+          done
+
+          # 4. Inject all existing flashcard and vault scripts before games-engine.js
+          python3 - <<'PY'
+          import os
+          path = "www/index.html"
+          if not os.path.exists(path):
+              print("www/index.html not found!")
+              exit(0)
+
+          with open(path, "r", encoding="utf-8") as f:
+              html = f.read()
+
+          scripts = []
+
+          # Flashcards fc-ch1.js to fc-ch9.js
+          for i in range(1, 10):
+              for fname in [f"fc-ch{i}.js", f"fc_ch{i}.js"]:
+                  if os.path.exists(f"www/{fname}") and fname not in html:
+                      scripts.append(f'<script src="{fname}"></script>')
+                      break
+
+          # Vault parts vault-part1.js to vault-part3.js
+          for i in range(1, 4):
+              for fname in [f"vault-part{i}.js", f"vault_part{i}.js"]:
+                  if os.path.exists(f"www/{fname}") and fname not in html:
+                      scripts.append(f'<script src="{fname}"></script>')
+                      break
+
+          if scripts:
+              inject = "\n  ".join(scripts) + '\n  <script src="games-engine.js"></script>'
+              html = html.replace('<script src="games-engine.js"></script>', inject, 1)
+              with open(path, "w", encoding="utf-8") as f:
+                  f.write(html)
+              print("Successfully injected scripts into index.html:", scripts)
+          else:
+              print("No new scripts needed to inject.")
+          PY
+
+      - name: Clean and Fresh Android Add & Sync
+        run: |
+          rm -rf android
+          npx cap add android
+          npx cap sync android
+
+      - name: Setup Native Widget with Teko Font, Bridge & Drawables
+        run: |
+          MAIN="android/app/src/main"
+          RES="$MAIN/res"
+          PKG_DIR="$MAIN/java/com/adityamaurya/chemexplorer"
+
+          mkdir -p "$PKG_DIR" "$RES/layout" "$RES/xml" "$RES/drawable" "$RES/drawable-nodpi" "$RES/font" "$MAIN/assets/fonts"
+
+          # 1) Setup Teko-Bold.ttf in native res/font and assets/fonts
+          for font in www/assets/fonts/Teko*.ttf assets/fonts/Teko*.ttf; do
+            if [ -f "$font" ]; then
+              cp "$font" "$RES/font/teko_bold.ttf"
+              cp "$font" "$MAIN/assets/fonts/Teko-Bold.ttf"
+              echo "Installed Teko font into native Android assets & res/font"
+              break
+            fi
+          done
+
+          # 2) Launcher icon setup
+          if [ -f "www/assets/images/logo.png" ]; then
+            rm -rf "$RES"/mipmap-anydpi-v26
+            for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+              mkdir -p "$RES/mipmap-$d"
+              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher.png"
+              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher_round.png"
+              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher_foreground.png"
+            done
+          fi
+
+          # 3) Copy widget backgrounds
+          for n in 1 2 3 4 5 6; do
+            SRC="www/assets/images/widget$n.jpg"
+            DST="$RES/drawable-nodpi/widget_bg_$n.jpg"
+            if [ -f "$SRC" ]; then
+              if command -v convert >/dev/null 2>&1; then
+                convert "$SRC" -auto-orient -resize '1000x1000>' -strip -quality 90 "$DST" || cp "$SRC" "$DST"
+              else
+                cp "$SRC" "$DST"
+              fi
+            fi
+          done
+
+          # 4) Create UI drawables
+          cat > "$RES/drawable/widget_card_frame.xml" <<'XML'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#FFFFF1A8" />
+              <corners android:radius="18dp" />
+              <stroke android:width="3dp" android:color="#FF1E1E1E" />
+          </shape>
+          XML
+
+          cat > "$RES/drawable/widget_xp_pill.xml" <<'XML'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#FFCDEBCB" />
+              <corners android:radius="99dp" />
+              <stroke android:width="2dp" android:color="#FF1E1E1E" />
+          </shape>
+          XML
+
+          cat > "$RES/drawable/widget_progress_draw.xml" <<'XML'
+          <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:id="@android:id/background">
+                  <shape android:shape="rectangle">
+                      <solid android:color="#FFFFFFFF" />
+                      <corners android:radius="99dp" />
+                      <stroke android:width="2dp" android:color="#FF1E1E1E" />
+                  </shape>
+              </item>
+              <item android:id="@android:id/progress">
+                  <clip>
+                      <shape android:shape="rectangle">
+                          <solid android:color="#FF8EE08A" />
+                          <corners android:radius="99dp" />
+                          <stroke android:width="2dp" android:color="#FF1E1E1E" />
+                      </shape>
+                  </clip>
+              </item>
+          </layer-list>
+          XML
+
+          # 5) Create Native Widget Layout with Teko Font
+          cat > "$RES/layout/streak_widget_layout.xml" <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/widget_root"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@drawable/widget_card_frame"
+              android:padding="12dp">
+
+              <LinearLayout
+                  android:id="@+id/widget_top_row"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_alignParentTop="true"
+                  android:orientation="horizontal"
+                  android:gravity="center_vertical">
+
+                  <TextView
+                      android:id="@+id/widget_xp_text"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:background="@drawable/widget_xp_pill"
+                      android:paddingHorizontal="10dp"
+                      android:paddingVertical="3dp"
+                      android:text="⚡ 0 XP"
+                      android:textColor="#1E1E1E"
+                      android:textSize="14sp"
+                      android:textStyle="bold"
+                      android:fontFamily="@font/teko_bold" />
+
+                  <View
+                      android:layout_width="0dp"
+                      android:layout_height="1dp"
+                      android:layout_weight="1" />
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="CHEMISTRY EXPLORER"
+                      android:textColor="#4D493C"
+                      android:textSize="12sp"
+                      android:textStyle="bold"
+                      android:fontFamily="@font/teko_bold" />
+              </LinearLayout>
+
+              <LinearLayout
+                  android:id="@+id/widget_center"
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_centerInParent="true"
+                  android:gravity="center"
+                  android:orientation="horizontal">
+
+                  <TextView
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="🔥"
+                      android:textSize="36sp" />
+
+                  <TextView
+                      android:id="@+id/widget_streak_num"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:layout_marginStart="8dp"
+                      android:text="0 Days"
+                      android:textColor="#1E1E1E"
+                      android:textSize="34sp"
+                      android:textStyle="bold"
+                      android:fontFamily="@font/teko_bold" />
+              </LinearLayout>
+
+              <LinearLayout
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:layout_alignParentBottom="true"
+                  android:orientation="vertical">
+
+                  <TextView
+                      android:id="@+id/widget_progress_text"
+                      android:layout_width="wrap_content"
+                      android:layout_height="wrap_content"
+                      android:text="📇 Daily Cards: 0 / 10"
+                      android:textColor="#1E1E1E"
+                      android:textSize="13sp"
+                      android:textStyle="bold"
+                      android:fontFamily="@font/teko_bold" />
+
+                  <ProgressBar
+                      android:id="@+id/widget_progress_bar"
+                      style="?android:attr/progressBarStyleHorizontal"
+                      android:layout_width="match_parent"
+                      android:layout_height="8dp"
+                      android:layout_marginTop="4dp"
+                      android:max="10"
+                      android:progress="0"
+                      android:progressDrawable="@drawable/widget_progress_draw" />
+              </LinearLayout>
+          </RelativeLayout>
+          XML
+
+          # 6) Create Widget Info XML
+          cat > "$RES/xml/streak_widget_info.xml" <<'XML'
+          <?xml version="1.0" encoding="utf-8"?>
+          <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+              android:minWidth="180dp"
+              android:minHeight="110dp"
+              android:targetCellWidth="4"
+              android:targetCellHeight="2"
+              android:updatePeriodMillis="1800000"
+              android:initialLayout="@layout/streak_widget_layout"
+              android:resizeMode="horizontal|vertical"
+              android:widgetCategory="home_screen">
+          </appwidget-provider>
+          XML
+
+          # 7) Create StreakWidgetProvider.java
+          cat > "$PKG_DIR/StreakWidgetProvider.java" <<'JAVA'
+          package com.adityamaurya.chemexplorer;
+
+          import android.app.PendingIntent;
+          import android.appwidget.AppWidgetManager;
+          import android.appwidget.AppWidgetProvider;
+          import android.content.ComponentName;
+          import android.content.Context;
+          import android.content.Intent;
+          import android.content.SharedPreferences;
+          import android.os.Build;
+          import android.widget.RemoteViews;
+          import org.json.JSONObject;
+
+          public class StreakWidgetProvider extends AppWidgetProvider {
+
+              public static void refreshAllWidgets(Context context) {
+                  try {
+                      AppWidgetManager manager = AppWidgetManager.getInstance(context);
+                      int[] appWidgetIds = manager.getAppWidgetIds(new ComponentName(context, StreakWidgetProvider.class));
+                      for (int appWidgetId : appWidgetIds) {
+                          updateAppWidget(context, manager, appWidgetId);
+                      }
+                  } catch (Exception ignored) {}
+              }
+
+              @Override
+              public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+                  for (int appWidgetId : appWidgetIds) {
+                      updateAppWidget(context, appWidgetManager, appWidgetId);
+                  }
+              }
+
+              static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
+                  RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.streak_widget_layout);
+
+                  int xp = 0;
+                  int streak = 0;
+                  int dailyCount = 0;
+                  int missedDays = 0;
+
+                  try {
+                      SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+                      String jsonStr = prefs.getString("CHEM_EXPLORER_V1_STATE", null);
+                      if (jsonStr != null) {
+                          JSONObject json = new JSONObject(jsonStr);
+                          xp = json.optInt("xp", 0);
+                          streak = json.optInt("streak", 0);
+                          dailyCount = json.optInt("dailyCardsCount", 0);
+                          missedDays = json.optInt("missedDays", 0);
+                      }
+                  } catch (Exception e) {
+                      e.printStackTrace();
+                  }
+
+                  views.setTextViewText(R.id.widget_xp_text, "⚡ " + xp + " XP");
+                  
+                  if (missedDays > 0 && dailyCount < 10) {
+                      views.setTextViewText(R.id.widget_streak_num, streak + "d (⚠️ " + missedDays + " missed)");
+                  } else {
+                      views.setTextViewText(R.id.widget_streak_num, streak + " Days");
+                  }
+                  
+                  views.setTextViewText(R.id.widget_progress_text, "📇 Daily Cards: " + Math.min(10, dailyCount) + " / 10");
+                  views.setProgressBar(R.id.widget_progress_bar, 10, Math.min(10, dailyCount), false);
+
+                  Intent intent = new Intent(context, MainActivity.class);
+                  int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+                  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                      flags |= PendingIntent.FLAG_IMMUTABLE;
+                  }
+                  PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, flags);
+                  views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
+
+                  appWidgetManager.updateAppWidget(appWidgetId, views);
+              }
+          }
+          JAVA
+
+          # 8) Inject NativeWidgetBridge in MainActivity.java
+          cat > "$PKG_DIR/MainActivity.java" <<'JAVA'
+          package com.adityamaurya.chemexplorer;
+
+          import android.content.Context;
+          import android.content.SharedPreferences;
+          import android.os.Bundle;
+          import android.webkit.JavascriptInterface;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  if (this.bridge != null && this.bridge.getWebView() != null) {
+                      this.bridge.getWebView().addJavascriptInterface(new Object() {
+                          @JavascriptInterface
+                          public void syncState(String json) {
+                              SharedPreferences prefs = getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+                              prefs.edit().putString("CHEM_EXPLORER_V1_STATE", json).apply();
+                              StreakWidgetProvider.refreshAllWidgets(MainActivity.this);
+                          }
+                      }, "NativeWidgetBridge");
+                  }
+              }
+
+              @Override
+              public void onPause() {
+                  super.onPause();
+                  StreakWidgetProvider.refreshAllWidgets(this);
+              }
+          }
+          JAVA
+
+          # 9) Register receiver in AndroidManifest
+          MANIFEST="$MAIN/AndroidManifest.xml"
+          if ! grep -q "StreakWidgetProvider" "$MANIFEST"; then
+            python3 - <<'PY'
+          path = "android/app/src/main/AndroidManifest.xml"
+          with open(path, "r", encoding="utf-8") as f:
+              content = f.read()
+
+          receiver = (
+              '    <receiver android:name="com.adityamaurya.chemexplorer.StreakWidgetProvider" android:exported="true">\n'
+              '        <intent-filter>\n'
+              '            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />\n'
+              '        </intent-filter>\n'
+              '        <meta-data android:name="android.appwidget.provider" android:resource="@xml/streak_widget_info" />\n'
+              '    </receiver>\n'
+              '</application>'
+          )
+          if "</application>" in content:
+              content = content.replace("</application>", receiver, 1)
+              with open(path, "w", encoding="utf-8") as f:
+                  f.write(content)
+          PY
+          fi
+
+      - name: Setup Persistent Release Keystore & In-Place Update Signing
+        run: |
+          mkdir -p android/app
+
+          # Decode persistent release keystore (valid till 2054)
+          cat <<'EOF' | base64 -d > android/app/release.keystore
+          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
+          EOF
+
+          # Configure build.gradle with auto-incrementing versionCode and signingConfigs
+          python3 - <<'PY'
+          import re
+
+          gradle_path = "android/app/build.gradle"
+          with open(gradle_path, "r", encoding="utf-8") as f:
+              content = f.read()
+
+          run_num = "${{ github.run_number }}"
+          content = re.sub(r'versionCode\s+\d+', f'versionCode {run_num}', content)
+          content = re.sub(r'versionName\s+"[^"]+"', f'versionName "1.0.{run_num}"', content)
+
+          signing_block = """
+              signingConfigs {
+                  release {
+                      storeFile file('release.keystore')
+                      storePassword 'chemexplorer123'
+                      keyAlias 'chemexplorer'
+                      keyPassword 'chemexplorer123'
+                  }
+              }
+          """
+          if "signingConfigs" not in content:
+              content = re.sub(r'(android\s*\{)', r'\1' + signing_block, content, count=1)
+              content = re.sub(r'(buildTypes\s*\{\s*release\s*\{)', r'\1\n            signingConfig signingConfigs.release', content, count=1)
+
+          with open(gradle_path, "w", encoding="utf-8") as f:
+              f.write(content)
+          print(f"build.gradle configured with versionCode {run_num} and permanent release signing!")
+          PY
+
+      - name: Build Signed Release APK with Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Upload Signed Release APK (Update-Compatible)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Chemistry-Explorer-Release-APK
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
