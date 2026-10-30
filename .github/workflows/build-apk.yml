@@ -24,8 +24,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Install Dependencies & Pillow
+        run: |
+          npm install
+          python3 -m pip install --quiet pillow
 
       - name: Auto-Link Flashcards, Vault, Fonts & QR into www/
         run: |
@@ -53,7 +55,7 @@ jobs:
             fi
           done
 
-          # 4. Inject all existing flashcard and vault scripts before games-engine.js
+          # 4. Inject scripts into index.html
           python3 - <<'PY'
           import os
           path = "www/index.html"
@@ -114,18 +116,38 @@ jobs:
             fi
           done
 
-          # 2) Launcher icon setup
-          if [ -f "www/assets/images/logo.png" ]; then
+          # 2) Convert logo.png to genuine PNG format to prevent AAPT compilation crash
+          python3 - <<'PY'
+          import os
+          from PIL import Image
+
+          logo_src = None
+          for p in ["www/assets/images/logo.png", "assets/images/logo.png"]:
+              if os.path.exists(p):
+                  logo_src = p
+                  break
+
+          if logo_src:
+              try:
+                  im = Image.open(logo_src)
+                  im.convert("RGBA").save("clean_logo.png", format="PNG")
+                  print("Converted logo to a verified PNG file!")
+              except Exception as e:
+                  print("Error converting logo image:", e)
+          PY
+
+          # 3) Install Launcher icon
+          if [ -f "clean_logo.png" ]; then
             rm -rf "$RES"/mipmap-anydpi-v26
             for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
               mkdir -p "$RES/mipmap-$d"
-              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher.png"
-              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher_round.png"
-              cp www/assets/images/logo.png "$RES/mipmap-$d/ic_launcher_foreground.png"
+              cp clean_logo.png "$RES/mipmap-$d/ic_launcher.png"
+              cp clean_logo.png "$RES/mipmap-$d/ic_launcher_round.png"
+              cp clean_logo.png "$RES/mipmap-$d/ic_launcher_foreground.png"
             done
           fi
 
-          # 3) Copy widget backgrounds
+          # 4) Copy widget backgrounds
           for n in 1 2 3 4 5 6; do
             SRC="www/assets/images/widget$n.jpg"
             DST="$RES/drawable-nodpi/widget_bg_$n.jpg"
@@ -138,7 +160,7 @@ jobs:
             fi
           done
 
-          # 4) Create UI drawables
+          # 5) Create UI drawables
           cat > "$RES/drawable/widget_card_frame.xml" <<'XML'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
               <solid android:color="#FFFFF1A8" />
@@ -176,7 +198,7 @@ jobs:
           </layer-list>
           XML
 
-          # 5) Create Native Widget Layout with Teko Font
+          # 6) Create Native Widget Layout with Teko Font
           cat > "$RES/layout/streak_widget_layout.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -277,7 +299,7 @@ jobs:
           </RelativeLayout>
           XML
 
-          # 6) Create Widget Info XML
+          # 7) Create Widget Info XML
           cat > "$RES/xml/streak_widget_info.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
@@ -292,7 +314,7 @@ jobs:
           </appwidget-provider>
           XML
 
-          # 7) Create StreakWidgetProvider.java
+          # 8) Create StreakWidgetProvider.java
           cat > "$PKG_DIR/StreakWidgetProvider.java" <<'JAVA'
           package com.adityamaurya.chemexplorer;
 
@@ -372,7 +394,7 @@ jobs:
           }
           JAVA
 
-          # 8) Inject NativeWidgetBridge in MainActivity.java
+          # 9) Inject NativeWidgetBridge in MainActivity.java
           cat > "$PKG_DIR/MainActivity.java" <<'JAVA'
           package com.adityamaurya.chemexplorer;
 
@@ -406,7 +428,7 @@ jobs:
           }
           JAVA
 
-          # 9) Register receiver in AndroidManifest
+          # 10) Register receiver in AndroidManifest
           MANIFEST="$MAIN/AndroidManifest.xml"
           if ! grep -q "StreakWidgetProvider" "$MANIFEST"; then
             python3 - <<'PY'
@@ -434,7 +456,7 @@ jobs:
         run: |
           mkdir -p android/app
 
-          # Decode persistent release keystore (valid till 2054)
+          # Decode persistent release keystore
           cat <<'EOF' | base64 -d > android/app/release.keystore
           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
           EOF
@@ -450,6 +472,12 @@ jobs:
           run_num = "${{ github.run_number }}"
           content = re.sub(r'versionCode\s+\d+', f'versionCode {run_num}', content)
           content = re.sub(r'versionName\s+"[^"]+"', f'versionName "1.0.{run_num}"', content)
+
+          # Disable strict AAPT cruncher
+          if "aaptOptions" in content:
+              content = re.sub(r'(aaptOptions\s*\{)', r'\1\n        cruncherEnabled = false', content, count=1)
+          else:
+              content = re.sub(r'(android\s*\{)', r'\1\n    aaptOptions {\n        cruncherEnabled = false\n    }', content, count=1)
 
           signing_block = """
               signingConfigs {
