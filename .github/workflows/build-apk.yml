@@ -33,49 +33,38 @@ jobs:
         run: |
           mkdir -p www/assets/images www/assets/fonts
 
-          # 1. Copy root-level flashcards and vault scripts into www/
           for f in fc-ch*.js fc_ch*.js vault-part*.js vault_part*.js; do
             if [ -f "$f" ]; then
               cp "$f" "www/$f"
-              echo "Moved $f to www/"
             fi
           done
 
-          # 2. Safety copy for qr.jpg
           if [ -f "qr.jpg" ]; then
             cp "qr.jpg" "www/assets/images/qr.jpg"
-            echo "Copied qr.jpg to www/assets/images/"
           fi
 
-          # 3. Safety copy for fonts
           for font in *.ttf fonts/*.ttf; do
             if [ -f "$font" ]; then
               cp "$font" "www/assets/fonts/"
-              echo "Copied $font to www/assets/fonts/"
             fi
           done
 
-          # 4. Inject scripts into index.html
           python3 - <<'PY'
           import os
           path = "www/index.html"
           if not os.path.exists(path):
-              print("www/index.html not found!")
               exit(0)
 
           with open(path, "r", encoding="utf-8") as f:
               html = f.read()
 
           scripts = []
-
-          # Flashcards fc-ch1.js to fc-ch9.js
           for i in range(1, 10):
               for fname in [f"fc-ch{i}.js", f"fc_ch{i}.js"]:
                   if os.path.exists(f"www/{fname}") and fname not in html:
                       scripts.append(f'<script src="{fname}"></script>')
                       break
 
-          # Vault parts vault-part1.js to vault-part3.js
           for i in range(1, 4):
               for fname in [f"vault-part{i}.js", f"vault_part{i}.js"]:
                   if os.path.exists(f"www/{fname}") and fname not in html:
@@ -87,9 +76,6 @@ jobs:
               html = html.replace('<script src="games-engine.js"></script>', inject, 1)
               with open(path, "w", encoding="utf-8") as f:
                   f.write(html)
-              print("Successfully injected scripts into index.html:", scripts)
-          else:
-              print("No new scripts needed to inject.")
           PY
 
       - name: Clean and Fresh Android Add & Sync
@@ -106,27 +92,20 @@ jobs:
 
           mkdir -p "$PKG_DIR" "$RES/layout" "$RES/xml" "$RES/drawable" "$RES/drawable-nodpi"
 
-          # 1) Convert logo.png to genuine PNG format to prevent AAPT compilation crash
+          # 1) Logo conversion to genuine PNG
           python3 - <<'PY'
           import os
           from PIL import Image
-
-          logo_src = None
           for p in ["www/assets/images/logo.png", "assets/images/logo.png"]:
               if os.path.exists(p):
-                  logo_src = p
-                  break
-
-          if logo_src:
-              try:
-                  im = Image.open(logo_src)
-                  im.convert("RGBA").save("clean_logo.png", format="PNG")
-                  print("Converted logo to a verified PNG file!")
-              except Exception as e:
-                  print("Error converting logo image:", e)
+                  try:
+                      im = Image.open(p)
+                      im.convert("RGBA").save("clean_logo.png", format="PNG")
+                      break
+                  except Exception:
+                      pass
           PY
 
-          # 2) Install Launcher icons safely
           if [ -f "clean_logo.png" ]; then
             rm -rf "$RES"/mipmap-anydpi-v26
             for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
@@ -137,33 +116,29 @@ jobs:
             done
           fi
 
-          # 3) Copy widget backgrounds
+          # 2) Widget backgrounds
           for n in 1 2 3 4 5 6; do
             SRC="www/assets/images/widget$n.jpg"
             DST="$RES/drawable-nodpi/widget_bg_$n.jpg"
             if [ -f "$SRC" ]; then
-              if command -v convert >/dev/null 2>&1; then
-                convert "$SRC" -auto-orient -resize '1000x1000>' -strip -quality 90 "$DST" || cp "$SRC" "$DST"
-              else
-                cp "$SRC" "$DST"
-              fi
+              cp "$SRC" "$DST"
             fi
           done
 
-          # 4) Create UI drawables
+          # 3) Widget Drawables
           cat > "$RES/drawable/widget_card_frame.xml" <<'XML'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
               <solid android:color="#FFFFF1A8" />
-              <corners android:radius="18dp" />
-              <stroke android:width="3dp" android:color="#FF1E1E1E" />
+              <corners android:radius="16dp" />
+              <stroke android:width="2dp" android:color="#FF1E1E1E" />
           </shape>
           XML
 
           cat > "$RES/drawable/widget_xp_pill.xml" <<'XML'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
               <solid android:color="#FFCDEBCB" />
-              <corners android:radius="99dp" />
-              <stroke android:width="2dp" android:color="#FF1E1E1E" />
+              <corners android:radius="20dp" />
+              <stroke android:width="1dp" android:color="#FF1E1E1E" />
           </shape>
           XML
 
@@ -172,23 +147,22 @@ jobs:
               <item android:id="@android:id/background">
                   <shape android:shape="rectangle">
                       <solid android:color="#FFFFFFFF" />
-                      <corners android:radius="99dp" />
-                      <stroke android:width="2dp" android:color="#FF1E1E1E" />
+                      <corners android:radius="10dp" />
+                      <stroke android:width="1dp" android:color="#FF1E1E1E" />
                   </shape>
               </item>
               <item android:id="@android:id/progress">
                   <clip>
                       <shape android:shape="rectangle">
                           <solid android:color="#FF8EE08A" />
-                          <corners android:radius="99dp" />
-                          <stroke android:width="2dp" android:color="#FF1E1E1E" />
+                          <corners android:radius="10dp" />
                       </shape>
                   </clip>
               </item>
           </layer-list>
           XML
 
-          # 5) 100% Crash-Proof RemoteViews Layout (No invalid attributes)
+          # 4) Pure standard RemoteViews Layout
           cat > "$RES/layout/streak_widget_layout.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -196,43 +170,36 @@ jobs:
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:background="@drawable/widget_card_frame"
-              android:padding="12dp">
+              android:padding="10dp">
 
-              <LinearLayout
-                  android:id="@+id/widget_top_row"
-                  android:layout_width="match_parent"
+              <TextView
+                  android:id="@+id/widget_xp_text"
+                  android:layout_width="wrap_content"
                   android:layout_height="wrap_content"
                   android:layout_alignParentTop="true"
-                  android:orientation="horizontal"
-                  android:gravity="center_vertical">
+                  android:layout_alignParentLeft="true"
+                  android:layout_alignParentStart="true"
+                  android:background="@drawable/widget_xp_pill"
+                  android:paddingLeft="8dp"
+                  android:paddingRight="8dp"
+                  android:paddingTop="2dp"
+                  android:paddingBottom="2dp"
+                  android:text="⚡ 0 XP"
+                  android:textColor="#1E1E1E"
+                  android:textSize="12sp"
+                  android:textStyle="bold" />
 
-                  <TextView
-                      android:id="@+id/widget_xp_text"
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:background="@drawable/widget_xp_pill"
-                      android:paddingLeft="10dp"
-                      android:paddingRight="10dp"
-                      android:paddingTop="3dp"
-                      android:paddingBottom="3dp"
-                      android:text="⚡ 0 XP"
-                      android:textColor="#1E1E1E"
-                      android:textSize="13sp"
-                      android:textStyle="bold" />
-
-                  <View
-                      android:layout_width="0dp"
-                      android:layout_height="1dp"
-                      android:layout_weight="1" />
-
-                  <TextView
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="CHEMISTRY EXPLORER"
-                      android:textColor="#4D493C"
-                      android:textSize="11sp"
-                      android:textStyle="bold" />
-              </LinearLayout>
+              <TextView
+                  android:id="@+id/widget_app_title"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content"
+                  android:layout_alignParentTop="true"
+                  android:layout_alignParentRight="true"
+                  android:layout_alignParentEnd="true"
+                  android:text="CHEM EXPLORER"
+                  android:textColor="#4D493C"
+                  android:textSize="11sp"
+                  android:textStyle="bold" />
 
               <LinearLayout
                   android:id="@+id/widget_center"
@@ -243,23 +210,24 @@ jobs:
                   android:orientation="vertical">
 
                   <TextView
+                      android:id="@+id/widget_fire_icon"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
                       android:text="🔥"
-                      android:textSize="32sp" />
+                      android:textSize="28sp" />
 
                   <TextView
                       android:id="@+id/widget_streak_num"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:layout_marginTop="2dp"
-                      android:text="0 Days"
+                      android:text="0 Days Streak"
                       android:textColor="#1E1E1E"
-                      android:textSize="22sp"
+                      android:textSize="18sp"
                       android:textStyle="bold" />
               </LinearLayout>
 
               <LinearLayout
+                  android:id="@+id/widget_bottom"
                   android:layout_width="match_parent"
                   android:layout_height="wrap_content"
                   android:layout_alignParentBottom="true"
@@ -271,15 +239,15 @@ jobs:
                       android:layout_height="wrap_content"
                       android:text="📇 Daily Cards: 0 / 10"
                       android:textColor="#1E1E1E"
-                      android:textSize="12sp"
+                      android:textSize="11sp"
                       android:textStyle="bold" />
 
                   <ProgressBar
                       android:id="@+id/widget_progress_bar"
-                      style="?android:attr/progressBarStyleHorizontal"
+                      style="@android:style/Widget.ProgressBar.Horizontal"
                       android:layout_width="match_parent"
-                      android:layout_height="8dp"
-                      android:layout_marginTop="4dp"
+                      android:layout_height="6dp"
+                      android:layout_marginTop="2dp"
                       android:max="10"
                       android:progress="0"
                       android:progressDrawable="@drawable/widget_progress_draw" />
@@ -287,14 +255,12 @@ jobs:
           </RelativeLayout>
           XML
 
-          # 6) Create Widget Info XML
+          # 5) Streak Widget Info XML
           cat > "$RES/xml/streak_widget_info.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-              android:minWidth="180dp"
-              android:minHeight="110dp"
-              android:targetCellWidth="4"
-              android:targetCellHeight="2"
+              android:minWidth="140dp"
+              android:minHeight="80dp"
               android:updatePeriodMillis="1800000"
               android:initialLayout="@layout/streak_widget_layout"
               android:resizeMode="horizontal|vertical"
@@ -302,7 +268,7 @@ jobs:
           </appwidget-provider>
           XML
 
-          # 7) StreakWidgetProvider.java with Robust Error Handling
+          # 6) Safe StreakWidgetProvider.java
           cat > "$PKG_DIR/StreakWidgetProvider.java" <<'JAVA'
           package com.adityamaurya.chemexplorer;
 
@@ -345,15 +311,17 @@ jobs:
                       int dailyCount = 0;
                       int missedDays = 0;
 
-                      SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
-                      String jsonStr = prefs.getString("CHEM_EXPLORER_V1_STATE", null);
-                      if (jsonStr != null) {
-                          JSONObject json = new JSONObject(jsonStr);
-                          xp = json.optInt("xp", 0);
-                          streak = json.optInt("streak", 0);
-                          dailyCount = json.optInt("dailyCardsCount", 0);
-                          missedDays = json.optInt("missedDays", 0);
-                      }
+                      try {
+                          SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
+                          String jsonStr = prefs.getString("CHEM_EXPLORER_V1_STATE", null);
+                          if (jsonStr != null) {
+                              JSONObject json = new JSONObject(jsonStr);
+                              xp = json.optInt("xp", 0);
+                              streak = json.optInt("streak", 0);
+                              dailyCount = json.optInt("dailyCardsCount", 0);
+                              missedDays = json.optInt("missedDays", 0);
+                          }
+                      } catch (Exception ignored) {}
 
                       views.setTextViewText(R.id.widget_xp_text, "⚡ " + xp + " XP");
 
@@ -375,14 +343,12 @@ jobs:
                       views.setOnClickPendingIntent(R.id.widget_root, pendingIntent);
 
                       appWidgetManager.updateAppWidget(appWidgetId, views);
-                  } catch (Exception e) {
-                      e.printStackTrace();
-                  }
+                  } catch (Exception ignored) {}
               }
           }
           JAVA
 
-          # 8) Inject NativeWidgetBridge in MainActivity.java
+          # 7) Native Bridge in MainActivity.java
           cat > "$PKG_DIR/MainActivity.java" <<'JAVA'
           package com.adityamaurya.chemexplorer;
 
@@ -416,7 +382,7 @@ jobs:
           }
           JAVA
 
-          # 9) Register receiver in AndroidManifest.xml
+          # 8) AndroidManifest.xml
           MANIFEST="$MAIN/AndroidManifest.xml"
           if ! grep -q "StreakWidgetProvider" "$MANIFEST"; then
             python3 - <<'PY'
@@ -444,15 +410,12 @@ jobs:
         run: |
           mkdir -p android/app
 
-          # Decode persistent release keystore
           cat <<'EOF' | base64 -d > android/app/release.keystore
           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
           EOF
 
-          # Configure build.gradle with auto-incrementing versionCode and signingConfigs
           python3 - <<'PY'
           import re
-
           gradle_path = "android/app/build.gradle"
           with open(gradle_path, "r", encoding="utf-8") as f:
               content = f.read()
@@ -461,7 +424,6 @@ jobs:
           content = re.sub(r'versionCode\s+\d+', f'versionCode {run_num}', content)
           content = re.sub(r'versionName\s+"[^"]+"', f'versionName "1.0.{run_num}"', content)
 
-          # Disable strict AAPT cruncher
           if "aaptOptions" in content:
               content = re.sub(r'(aaptOptions\s*\{)', r'\1\n        cruncherEnabled = false', content, count=1)
           else:
@@ -483,7 +445,6 @@ jobs:
 
           with open(gradle_path, "w", encoding="utf-8") as f:
               f.write(content)
-          print(f"build.gradle configured with versionCode {run_num} and permanent release signing!")
           PY
 
       - name: Build Signed Release APK with Gradle
@@ -492,7 +453,7 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Upload Signed Release APK (Update-Compatible)
+      - name: Upload Signed Release APK
         uses: actions/upload-artifact@v4
         with:
           name: Chemistry-Explorer-Release-APK
