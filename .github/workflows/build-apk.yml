@@ -84,7 +84,7 @@ jobs:
           npx cap add android
           npx cap sync android
 
-      - name: Setup Native Widget, Launcher Icon & Assets
+      - name: Setup Native Widget with Custom Background Sync & Assets
         run: |
           MAIN="android/app/src/main"
           RES="$MAIN/res"
@@ -116,19 +116,34 @@ jobs:
             done
           fi
 
-          # 2) Widget backgrounds
+          # 2) Copy all 6 widget backgrounds into drawable-nodpi
           for n in 1 2 3 4 5 6; do
-            SRC="www/assets/images/widget$n.jpg"
+            SRC=""
+            for p in "www/assets/images/widget$n.jpg" "assets/images/widget$n.jpg"; do
+              if [ -f "$p" ]; then
+                SRC="$p"
+                break
+              fi
+            done
             DST="$RES/drawable-nodpi/widget_bg_$n.jpg"
-            if [ -f "$SRC" ]; then
+            if [ -n "$SRC" ]; then
               cp "$SRC" "$DST"
+              echo "Installed widget background $n"
             fi
           done
 
-          # 3) Widget Drawables
+          # 3) Widget Drawables (Default Frame, Photo Overlay, XP Pill, Progress)
           cat > "$RES/drawable/widget_card_frame.xml" <<'XML'
           <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
               <solid android:color="#FFFFF1A8" />
+              <corners android:radius="16dp" />
+              <stroke android:width="2dp" android:color="#FF1E1E1E" />
+          </shape>
+          XML
+
+          cat > "$RES/drawable/widget_photo_overlay.xml" <<'XML'
+          <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+              <solid android:color="#59000000" />
               <corners android:radius="16dp" />
               <stroke android:width="2dp" android:color="#FF1E1E1E" />
           </shape>
@@ -162,100 +177,123 @@ jobs:
           </layer-list>
           XML
 
-          # 4) Pure standard RemoteViews Layout
+          # 4) Layered RemoteViews Layout supporting Custom Background Images
           cat > "$RES/layout/streak_widget_layout.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:id="@+id/widget_root"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:background="@drawable/widget_card_frame"
-              android:padding="10dp">
+              android:background="@drawable/widget_card_frame">
 
-              <TextView
-                  android:id="@+id/widget_xp_text"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_alignParentTop="true"
-                  android:layout_alignParentLeft="true"
-                  android:layout_alignParentStart="true"
-                  android:background="@drawable/widget_xp_pill"
-                  android:paddingLeft="8dp"
-                  android:paddingRight="8dp"
-                  android:paddingTop="2dp"
-                  android:paddingBottom="2dp"
-                  android:text="⚡ 0 XP"
-                  android:textColor="#1E1E1E"
-                  android:textSize="12sp"
-                  android:textStyle="bold" />
-
-              <TextView
-                  android:id="@+id/widget_app_title"
-                  android:layout_width="wrap_content"
-                  android:layout_height="wrap_content"
-                  android:layout_alignParentTop="true"
-                  android:layout_alignParentRight="true"
-                  android:layout_alignParentEnd="true"
-                  android:text="CHEM EXPLORER"
-                  android:textColor="#4D493C"
-                  android:textSize="11sp"
-                  android:textStyle="bold" />
-
-              <LinearLayout
-                  android:id="@+id/widget_center"
+              <!-- Layer 1: Custom Background Wallpaper Image -->
+              <ImageView
+                  android:id="@+id/widget_bg_image"
                   android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_centerInParent="true"
-                  android:gravity="center"
-                  android:orientation="vertical">
+                  android:layout_height="match_parent"
+                  android:scaleType="centerCrop"
+                  android:visibility="gone" />
+
+              <!-- Layer 2: Translucent Overlay for High Contrast Text Reading -->
+              <ImageView
+                  android:id="@+id/widget_overlay"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:background="@drawable/widget_photo_overlay"
+                  android:visibility="gone" />
+
+              <!-- Layer 3: Foreground Content -->
+              <RelativeLayout
+                  android:id="@+id/widget_content"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:padding="10dp">
 
                   <TextView
-                      android:id="@+id/widget_fire_icon"
+                      android:id="@+id/widget_xp_text"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="🔥"
-                      android:textSize="28sp" />
-
-                  <TextView
-                      android:id="@+id/widget_streak_num"
-                      android:layout_width="wrap_content"
-                      android:layout_height="wrap_content"
-                      android:text="0 Days Streak"
+                      android:layout_alignParentTop="true"
+                      android:layout_alignParentLeft="true"
+                      android:layout_alignParentStart="true"
+                      android:background="@drawable/widget_xp_pill"
+                      android:paddingLeft="8dp"
+                      android:paddingRight="8dp"
+                      android:paddingTop="2dp"
+                      android:paddingBottom="2dp"
+                      android:text="⚡ 0 XP"
                       android:textColor="#1E1E1E"
-                      android:textSize="18sp"
+                      android:textSize="12sp"
                       android:textStyle="bold" />
-              </LinearLayout>
-
-              <LinearLayout
-                  android:id="@+id/widget_bottom"
-                  android:layout_width="match_parent"
-                  android:layout_height="wrap_content"
-                  android:layout_alignParentBottom="true"
-                  android:orientation="vertical">
 
                   <TextView
-                      android:id="@+id/widget_progress_text"
+                      android:id="@+id/widget_app_title"
                       android:layout_width="wrap_content"
                       android:layout_height="wrap_content"
-                      android:text="📇 Daily Cards: 0 / 10"
-                      android:textColor="#1E1E1E"
+                      android:layout_alignParentTop="true"
+                      android:layout_alignParentRight="true"
+                      android:layout_alignParentEnd="true"
+                      android:text="CHEM EXPLORER"
+                      android:textColor="#4D493C"
                       android:textSize="11sp"
                       android:textStyle="bold" />
 
-                  <ProgressBar
-                      android:id="@+id/widget_progress_bar"
-                      style="@android:style/Widget.ProgressBar.Horizontal"
+                  <LinearLayout
+                      android:id="@+id/widget_center"
                       android:layout_width="match_parent"
-                      android:layout_height="6dp"
-                      android:layout_marginTop="2dp"
-                      android:max="10"
-                      android:progress="0"
-                      android:progressDrawable="@drawable/widget_progress_draw" />
-              </LinearLayout>
+                      android:layout_height="wrap_content"
+                      android:layout_centerInParent="true"
+                      android:gravity="center"
+                      android:orientation="vertical">
+
+                      <TextView
+                          android:id="@+id/widget_fire_icon"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="🔥"
+                          android:textSize="28sp" />
+
+                      <TextView
+                          android:id="@+id/widget_streak_num"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="0 Days Streak"
+                          android:textColor="#1E1E1E"
+                          android:textSize="18sp"
+                          android:textStyle="bold" />
+                  </LinearLayout>
+
+                  <LinearLayout
+                      android:id="@+id/widget_bottom"
+                      android:layout_width="match_parent"
+                      android:layout_height="wrap_content"
+                      android:layout_alignParentBottom="true"
+                      android:orientation="vertical">
+
+                      <TextView
+                          android:id="@+id/widget_progress_text"
+                          android:layout_width="wrap_content"
+                          android:layout_height="wrap_content"
+                          android:text="📇 Daily Cards: 0 / 10"
+                          android:textColor="#1E1E1E"
+                          android:textSize="11sp"
+                          android:textStyle="bold" />
+
+                      <ProgressBar
+                          android:id="@+id/widget_progress_bar"
+                          style="@android:style/Widget.ProgressBar.Horizontal"
+                          android:layout_width="match_parent"
+                          android:layout_height="6dp"
+                          android:layout_marginTop="2dp"
+                          android:max="10"
+                          android:progress="0"
+                          android:progressDrawable="@drawable/widget_progress_draw" />
+                  </LinearLayout>
+              </RelativeLayout>
           </RelativeLayout>
           XML
 
-          # 5) Streak Widget Info XML
+          # 5) Widget Info XML
           cat > "$RES/xml/streak_widget_info.xml" <<'XML'
           <?xml version="1.0" encoding="utf-8"?>
           <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
@@ -268,7 +306,7 @@ jobs:
           </appwidget-provider>
           XML
 
-          # 6) Safe StreakWidgetProvider.java
+          # 6) StreakWidgetProvider.java with Live Custom Background Sync
           cat > "$PKG_DIR/StreakWidgetProvider.java" <<'JAVA'
           package com.adityamaurya.chemexplorer;
 
@@ -280,6 +318,7 @@ jobs:
           import android.content.Intent;
           import android.content.SharedPreferences;
           import android.os.Build;
+          import android.view.View;
           import android.widget.RemoteViews;
           import org.json.JSONObject;
 
@@ -310,6 +349,7 @@ jobs:
                       int streak = 0;
                       int dailyCount = 0;
                       int missedDays = 0;
+                      String widgetBg = "default";
 
                       try {
                           SharedPreferences prefs = context.getSharedPreferences("CapacitorStorage", Context.MODE_PRIVATE);
@@ -320,8 +360,37 @@ jobs:
                               streak = json.optInt("streak", 0);
                               dailyCount = json.optInt("dailyCardsCount", 0);
                               missedDays = json.optInt("missedDays", 0);
+                              JSONObject user = json.optJSONObject("user");
+                              if (user != null) {
+                                  widgetBg = user.optString("widgetBg", "default");
+                              }
                           }
                       } catch (Exception ignored) {}
+
+                      // Live sync custom photo background
+                      boolean isCustom = false;
+                      if (widgetBg != null && widgetBg.startsWith("widget")) {
+                          String numStr = widgetBg.replace("widget", "");
+                          int resId = context.getResources().getIdentifier("widget_bg_" + numStr, "drawable", context.getPackageName());
+                          if (resId != 0) {
+                              views.setImageViewResource(R.id.widget_bg_image, resId);
+                              views.setViewVisibility(R.id.widget_bg_image, View.VISIBLE);
+                              views.setViewVisibility(R.id.widget_overlay, View.VISIBLE);
+                              isCustom = true;
+                          }
+                      }
+
+                      if (!isCustom) {
+                          views.setViewVisibility(R.id.widget_bg_image, View.GONE);
+                          views.setViewVisibility(R.id.widget_overlay, View.GONE);
+                          views.setTextColor(R.id.widget_streak_num, 0xFF1E1E1E);
+                          views.setTextColor(R.id.widget_progress_text, 0xFF1E1E1E);
+                          views.setTextColor(R.id.widget_app_title, 0xFF4D493C);
+                      } else {
+                          views.setTextColor(R.id.widget_streak_num, 0xFFFFFFFF);
+                          views.setTextColor(R.id.widget_progress_text, 0xFFFFFFFF);
+                          views.setTextColor(R.id.widget_app_title, 0xFFFFFFFF);
+                      }
 
                       views.setTextViewText(R.id.widget_xp_text, "⚡ " + xp + " XP");
 
